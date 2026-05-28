@@ -8,19 +8,20 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MinhaRota">
 <link rel="manifest" id="pwa-manifest">
-<title>MinhaRota v0.5.0-beta</title>
+<title>MinhaRota v0.6.0-beta</title>
 <style>
 /* ═══════════════════════════════════════════
-   MinhaRota · v0.5.0-beta
-   UI: 0.5 | Lógica: 0.5 | DB: 0.4
+   MinhaRota · v0.6.0-beta
+   UI: 0.6 | Lógica: 0.6 | DB: 0.5
    Changelog:
-   [0.5.0-beta] Parcelas e recorrência em contas
-   - Contas parceladas: total, parcelas restantes
-   - Períodos: mensal, quinzenal, semanal, anual
-   - Card da conta mostra progresso das parcelas
-   - Pagar parcela avança automaticamente para a próxima
-   - Meta diária considera próxima parcela e período
-   - Retrocompatível com contas antigas
+   [0.6.0-beta] Dívidas + Configurações + Temas
+   - Nova aba Dívidas: cadastro de dívidas antigas
+   - Dívidas: parceladas ou valor total, com prazo
+   - Dívidas: editar, excluir, marcar parcela paga
+   - Dívidas: progresso visual por dívida
+   - Config: tema claro / escuro (persistido)
+   - Config: backup e dados na mesma tela
+   - Nav: ícone ⚙️ de configurações
 ═══════════════════════════════════════════ */
 
 :root {
@@ -38,6 +39,22 @@
   --blu: #3498db;
   --r:   12px;
   --rs:  8px;
+}
+
+/* ── TEMA CLARO ── */
+body.tema-claro {
+  --bg:  #f5f5f0;
+  --bg2: #ffffff;
+  --bg3: #ececec;
+  --bg4: #e0e0dc;
+  --brd: #d0d0cc;
+  --txt: #1a1a1a;
+  --mut: #888;
+  --grn: #18a04a;
+  --amb: #c47d00;
+  --red: #c0392b;
+  --pur: #7d3c98;
+  --blu: #2172ae;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -341,14 +358,66 @@ canvas { display: block; width: 100% !important; }
 .exrow-val.ent { color: var(--grn); }
 .exrow-val.sai { color: var(--red); }
 .exrow-val.gst { color: var(--amb); }
-.ext-vazio { font-size: 13px; color: var(--mut); text-align: center; padding: 24px 0; }
+/* ── DÍVIDAS ── */
+.div-card { background: var(--bg2); border: 1px solid var(--brd); border-radius: var(--r); padding: 14px 16px; margin-bottom: 10px; }
+.div-header { display: flex; align-items: flex-start; gap: 10px; }
+.div-ico { width: 36px; height: 36px; border-radius: var(--rs); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; background: rgba(231,76,60,.1); }
+.div-info { flex: 1; min-width: 0; }
+.div-nm { font-size: 14px; font-weight: 700; color: var(--txt); }
+.div-sb { font-size: 11px; color: var(--mut); margin-top: 1px; }
+.div-val { text-align: right; flex-shrink: 0; }
+.div-parc { font-family: 'Courier New', Courier, monospace; font-size: 15px; font-weight: 700; color: var(--red); }
+.div-tot  { font-size: 10px; color: var(--mut); margin-top: 2px; }
+.div-prog { margin-top: 10px; }
+.div-prog-bar { height: 6px; background: var(--bg4); border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
+.div-prog-fill { height: 100%; border-radius: 3px; background: var(--grn); transition: width .4s; }
+.div-prog-lbl { display: flex; justify-content: space-between; font-size: 10px; color: var(--mut); }
+.div-acts { display: flex; gap: 6px; margin-top: 10px; border-top: 1px solid var(--brd); padding-top: 10px; }
+.div-acts .bedit, .div-acts .bdel2 { flex: 1; text-align: center; }
+.bparc { flex: 2; padding: 7px; border-radius: var(--rs); font-size: 12px; cursor: pointer; font-family: inherit; border: 1px solid rgba(46,204,113,.35); background: rgba(46,204,113,.08); color: var(--grn); font-weight: 600; text-align: center; }
+.div-quitada { opacity: .55; }
+.div-quitada .div-ico { background: rgba(46,204,113,.1); }
+.div-status { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 99px; margin-left: 6px; vertical-align: middle; }
+.div-status.ativa  { background: rgba(231,76,60,.15); color: var(--red); }
+.div-status.ok     { background: rgba(46,204,113,.15); color: var(--grn); }
+.div-filtros { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.div-fil { padding: 5px 12px; border-radius: 99px; font-size: 12px; border: 1px solid var(--brd); background: var(--bg3); cursor: pointer; color: var(--mut); font-family: inherit; }
+.div-fil.on { background: rgba(231,76,60,.15); border-color: var(--red); color: var(--red); }
+.div-fil.on.g { background: rgba(46,204,113,.15); border-color: var(--grn); color: var(--grn); }
+.div-total-box { background: var(--bg2); border: 1px solid var(--brd); border-radius: var(--r); padding: 14px 16px; margin-bottom: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.div-tbox { text-align: center; }
+.div-tbox-lbl { font-size: 10px; color: var(--mut); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+.div-tbox-val { font-family: 'Courier New', Courier, monospace; font-size: 16px; font-weight: 700; }
+
+/* ── CONFIGURAÇÕES ── */
+.cfg-section { margin-bottom: 18px; }
+.cfg-lbl { font-size: 11px; color: var(--mut); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; margin-bottom: 8px; padding: 0 2px; }
+.cfg-card { background: var(--bg2); border: 1px solid var(--brd); border-radius: var(--r); overflow: hidden; }
+.cfg-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--brd); cursor: pointer; transition: background .15s; }
+.cfg-row:last-child { border-bottom: none; }
+.cfg-row:active { background: var(--bg3); }
+.cfg-row-ico { width: 34px; height: 34px; border-radius: var(--rs); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.cfg-row-txt { flex: 1; }
+.cfg-row-nm  { font-size: 14px; font-weight: 600; color: var(--txt); }
+.cfg-row-sb  { font-size: 11px; color: var(--mut); margin-top: 1px; }
+.cfg-row-arr { color: var(--mut); font-size: 18px; flex-shrink: 0; }
+
+/* ── TEMA TOGGLE ── */
+.tema-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px 16px; }
+.tema-opt { border: 2px solid var(--brd); border-radius: var(--rs); padding: 12px; cursor: pointer; text-align: center; transition: border-color .15s, background .15s; }
+.tema-opt.on { border-color: var(--grn); background: rgba(46,204,113,.08); }
+.tema-opt-prev { width: 100%; height: 40px; border-radius: 6px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 18px; }
+.tema-opt-prev.escuro { background: #181818; }
+.tema-opt-prev.claro  { background: #f0f0ec; }
+.tema-opt-nm { font-size: 12px; font-weight: 600; color: var(--txt); }
+.tema-opt-sb { font-size: 10px; color: var(--mut); }
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <header class="hdr">
-  <div class="logo">MINHA<em>ROTA</em><small>v0.5.0-beta</small></div>
+  <div class="logo">MINHA<em>ROTA</em><small>v0.6.0-beta</small></div>
   <div class="hdr-right">
     <div class="pill" id="dpill"></div>
     <div class="usr-pill" id="upill" onclick="abrirM('usr')" title="Trocar usuário">👤 —</div>
@@ -663,12 +732,103 @@ canvas { display: block; width: 100% !important; }
   </div>
 
 </div>
+<!-- ══════════ DÍVIDAS ══════════ -->
+<div id="pg-dividas" class="pg">
+
+  <!-- Painel totalizador -->
+  <div class="div-total-box" id="div-totais"></div>
+
+  <!-- Filtros -->
+  <div class="div-filtros">
+    <button class="div-fil on" data-f="todas" onclick="filtrarDividas(this)">Todas</button>
+    <button class="div-fil" data-f="ativas" onclick="filtrarDividas(this)">Em aberto</button>
+    <button class="div-fil g" data-f="quitadas" onclick="filtrarDividas(this)">Quitadas</button>
+  </div>
+
+  <!-- Lista -->
+  <div id="div-lista"></div>
+
+  <button class="badd" onclick="abrirModalDivida()">+ Adicionar dívida</button>
+</div>
+
+<!-- ══════════ CONFIG ══════════ -->
+<div id="pg-config" class="pg">
+
+  <div class="cfg-section">
+    <div class="cfg-lbl">Aparência</div>
+    <div class="cfg-card">
+      <div style="padding:10px 16px 6px; font-size:12px; color:var(--mut); border-bottom:1px solid var(--brd)">Tema</div>
+      <div class="tema-grid">
+        <div class="tema-opt escuro on" id="tema-escuro" onclick="setTema('escuro')">
+          <div class="tema-opt-prev escuro">🌙</div>
+          <div class="tema-opt-nm">Escuro</div>
+          <div class="tema-opt-sb">Padrão</div>
+        </div>
+        <div class="tema-opt claro" id="tema-claro" onclick="setTema('claro')">
+          <div class="tema-opt-prev claro">☀️</div>
+          <div class="tema-opt-nm">Claro</div>
+          <div class="tema-opt-sb">Light mode</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cfg-section">
+    <div class="cfg-lbl">Dados e conta</div>
+    <div class="cfg-card">
+      <div class="cfg-row" onclick="abrirM('usr')">
+        <div class="cfg-row-ico" style="background:rgba(52,152,219,.12)">👤</div>
+        <div class="cfg-row-txt">
+          <div class="cfg-row-nm">Perfis de usuário</div>
+          <div class="cfg-row-sb">Criar, trocar ou remover perfis</div>
+        </div>
+        <div class="cfg-row-arr">›</div>
+      </div>
+      <div class="cfg-row" onclick="abrirExportImport()">
+        <div class="cfg-row-ico" style="background:rgba(46,204,113,.12)">📦</div>
+        <div class="cfg-row-txt">
+          <div class="cfg-row-nm">Backup / Restaurar</div>
+          <div class="cfg-row-sb">Exportar ou importar dados JSON</div>
+        </div>
+        <div class="cfg-row-arr">›</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cfg-section">
+    <div class="cfg-lbl">Histórico</div>
+    <div class="cfg-card">
+      <div class="cfg-row" onclick="irParaSemana()">
+        <div class="cfg-row-ico" style="background:rgba(155,89,182,.12)">📅</div>
+        <div class="cfg-row-txt">
+          <div class="cfg-row-nm">Semana / Histórico</div>
+          <div class="cfg-row-sb">Resumos e histórico de ganhos</div>
+        </div>
+        <div class="cfg-row-arr">›</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cfg-section">
+    <div class="cfg-lbl">Sobre</div>
+    <div class="cfg-card">
+      <div class="cfg-row" style="cursor:default">
+        <div class="cfg-row-ico" style="background:rgba(46,204,113,.12)">🏍</div>
+        <div class="cfg-row-txt">
+          <div class="cfg-row-nm">MinhaRota</div>
+          <div class="cfg-row-sb">v0.6.0-beta · Controle financeiro para entregadores</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
 
 </main>
 
 <!-- NAV -->
 <nav class="nav" style="--nb-size:9px">
-  <button class="nb on" data-pg="home"     onclick="irPara(this)">
+  <button class="nb on" data-pg="home" onclick="irPara(this)">
     <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     Hoje
   </button>
@@ -677,24 +837,28 @@ canvas { display: block; width: 100% !important; }
     Caixas
   </button>
   <button class="nb" data-pg="contas" onclick="irPara(this)">
-    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
     Contas
+  </button>
+  <button class="nb" data-pg="dividas" onclick="irPara(this)">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    Dívidas
   </button>
   <button class="nb" data-pg="extrato" onclick="irPara(this)">
     <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
     Extrato
   </button>
-  <button class="nb" data-pg="semana" onclick="irPara(this)">
-    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-    Semana
-  </button>
   <button class="nb" data-pg="graficos" onclick="irPara(this)">
     <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     Gráficos
   </button>
+  <button class="nb" data-pg="config" onclick="irPara(this)">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Config
+  </button>
 </nav>
 
-<div class="ver">v0.5.0-beta · UI:0.5 · DB:0.4</div>
+<div class="ver">v0.6.0-beta · UI:0.6 · DB:0.5</div>
 
 <!-- MODAL: CONTA -->
 <div class="mov" id="m-conta">
@@ -758,6 +922,62 @@ canvas { display: block; width: 100% !important; }
   </div>
 </div>
 
+<!-- MODAL: DÍVIDA -->
+<div class="mov" id="m-divida">
+  <div class="mod">
+    <h3 id="m-div-titulo">Nova dívida</h3>
+
+    <div class="f"><label>Nome / Credor</label><input type="text" id="dv-nome" placeholder="Ex: Empréstimo banco, cartão..."></div>
+    <div class="g2">
+      <div class="f"><label>Valor total (R$)</label><input type="number" id="dv-total" placeholder="0,00" min="0" step="0.01" oninput="atualizarResumoDiv()"></div>
+      <div class="f"><label>Valor já pago (R$)</label><input type="number" id="dv-pago" placeholder="0,00" min="0" step="0.01" oninput="atualizarResumoDiv()"></div>
+    </div>
+
+    <label class="parc-toggle">
+      <input type="checkbox" id="dv-parc-on" onchange="toggleParcDiv()">
+      <span>É parcelado?</span>
+    </label>
+
+    <div class="parc-fields" id="dv-parc-fields">
+      <div class="periodo-grid">
+        <div class="f" style="margin-bottom:0">
+          <label>Período</label>
+          <select id="dv-periodo">
+            <option value="mensal">Mensal</option>
+            <option value="quinzenal">Quinzenal</option>
+            <option value="semanal">Semanal</option>
+            <option value="anual">Anual</option>
+          </select>
+        </div>
+        <div class="f" style="margin-bottom:0">
+          <label>Valor da parcela (R$)</label>
+          <input type="number" id="dv-parc-val" placeholder="0,00" min="0" step="0.01" oninput="atualizarResumoDiv()">
+        </div>
+      </div>
+      <div class="g2" style="margin-top:8px">
+        <div class="f" style="margin-bottom:0">
+          <label>Parcelas totais</label>
+          <input type="number" id="dv-parc-tot" placeholder="Ex: 36" min="1" step="1" oninput="atualizarResumoDiv()">
+        </div>
+        <div class="f" style="margin-bottom:0">
+          <label>Pagas até agora</label>
+          <input type="number" id="dv-parc-pagas" placeholder="Ex: 5" min="0" step="1" oninput="atualizarResumoDiv()">
+        </div>
+      </div>
+    </div>
+
+    <div class="f" style="margin-top:8px"><label>Próximo vencimento</label><input type="date" id="dv-venc"></div>
+    <div class="f"><label>Observação (opcional)</label><input type="text" id="dv-obs" placeholder="Ex: juros de mora, banco X..."></div>
+    <div id="div-resumo-modal" style="font-size:12px;color:var(--mut);padding:4px 0;"></div>
+
+    <input type="hidden" id="dv-edit-idx" value="-1">
+    <div class="mact">
+      <button class="bcan" onclick="fecharM('divida')">Cancelar</button>
+      <button class="bsav" onclick="salvarDivida()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: EMOJI -->
 <div class="mov" id="m-emoji">
   <div class="mod">
@@ -816,7 +1036,7 @@ canvas { display: block; width: 100% !important; }
   ──────────────────────────────────────────────────────────
 */
 
-var VER      = '0.5.0-beta';
+var VER      = '0.6.0-beta';
 var KEY_USRS = 'mr_users';
 var KEY_CURR = 'mr_curr';
 
@@ -921,6 +1141,7 @@ function novoEstado() {
     liq:0, metaAuto:0, metaMan:0,
     folgas:[0,3],
     contas:[], hist:[], pagas:[], depositos:[],
+    dividas:[],
     caixas: JSON.parse(JSON.stringify(CAIXAS_PAD)),
     nid:5
   };
@@ -1094,6 +1315,12 @@ function irPara(btn) {
   if (pg==='semana')   renderSemana();
   if (pg==='graficos') renderGraficos();
   if (pg==='extrato')  iniciarExtrato();
+  if (pg==='dividas')  renderDividas();
+  if (pg==='config')   renderConfig();
+}
+function irParaSemana() {
+  var btn = document.querySelector('.nb[data-pg="semana"]');
+  if (btn) irPara(btn);
 }
 
 // ── TABS ──────────────────────────────────────────────────
@@ -2334,6 +2561,236 @@ function renderExtrato() {
 
 function abrirExportImport() { abrirM('backup'); }
 
+// ── DÍVIDAS ───────────────────────────────────────────────
+var _divFiltro = 'todas';
+
+function renderDividas() {
+  if (!S.dividas) S.dividas = [];
+  var divs = S.dividas;
+
+  var totEl = document.getElementById('div-totais');
+  var totalDev  = divs.filter(function(d){ return !d.quitada; })
+                      .reduce(function(a,d){ return a + saldoDiv(d); }, 0);
+  var totalPago = divs.reduce(function(a,d){
+    return a + (d.parcTeam ? d.parcPagas * d.parcVal : (d.pago||0));
+  }, 0);
+  if (totEl) totEl.innerHTML =
+    '<div class="div-tbox"><div class="div-tbox-lbl">Total em aberto</div>'+
+      '<div class="div-tbox-val" style="color:var(--red)">'+fK(totalDev)+'</div></div>'+
+    '<div class="div-tbox"><div class="div-tbox-lbl">Total já pago</div>'+
+      '<div class="div-tbox-val" style="color:var(--grn)">'+fK(totalPago)+'</div></div>';
+
+  var lista = divs.filter(function(d){
+    if (_divFiltro === 'ativas')   return !d.quitada;
+    if (_divFiltro === 'quitadas') return  d.quitada;
+    return true;
+  });
+
+  var el = document.getElementById('div-lista');
+  if (!el) return;
+  if (!lista.length) {
+    el.innerHTML = '<p class="empty" style="padding:20px 0;text-align:center">' +
+      (_divFiltro === 'todas' ? 'Nenhuma dívida cadastrada.' :
+       _divFiltro === 'ativas' ? 'Nenhuma dívida em aberto.' : 'Nenhuma dívida quitada.') + '</p>';
+    return;
+  }
+
+  el.innerHTML = lista.map(function(dv) {
+    var i = divs.indexOf(dv);
+    var saldo = saldoDiv(dv);
+    var pct   = pctDiv(dv);
+    var perLbl = PERIODO_LBL[dv.periodo] || '';
+    var subInfo = [];
+    if (dv.parcTeam) {
+      var rest = Math.max(0, dv.parcTot - dv.parcPagas);
+      subInfo.push(rest + 'x de ' + fR(dv.parcVal) + ' restantes');
+      if (perLbl) subInfo.push(perLbl);
+    } else if (dv.obs) { subInfo.push(dv.obs); }
+    if (dv.venc && !dv.quitada) {
+      var vd = new Date(dv.venc+'T12:00:00');
+      var dd = Math.ceil((vd - new Date())/86400000);
+      subInfo.push(dd<=0?'Vencida':dd===1?'Vence amanhã':'Vence em '+dd+'d');
+    }
+    var actsHtml = dv.quitada ? '' :
+      '<div class="div-acts">'+
+        '<button class="bedit" onclick="editarDivida('+i+')">✏️ Editar</button>'+
+        (dv.parcTeam ?
+          '<button class="bparc" onclick="pagarParcelaDiv('+i+')">✅ Pagar parcela</button>' :
+          '<button class="bparc" onclick="quitarDivida('+i+')">✅ Quitar</button>')+
+        '<button class="bdel2" onclick="excluirDivida('+i+')">🗑</button>'+
+      '</div>';
+
+    return '<div class="div-card'+(dv.quitada?' div-quitada':'')+'">'+
+      '<div class="div-header">'+
+        '<div class="div-ico">'+(dv.quitada?'✅':'💸')+'</div>'+
+        '<div class="div-info">'+
+          '<div class="div-nm">'+dv.nm+
+            '<span class="div-status '+(dv.quitada?'ok':'ativa')+'">'+(dv.quitada?'QUITADA':'EM ABERTO')+'</span>'+
+          '</div>'+
+          '<div class="div-sb">'+(subInfo.join(' · ')||'&nbsp;')+'</div>'+
+        '</div>'+
+        '<div class="div-val">'+
+          '<div class="div-parc">'+fR(dv.parcTeam ? dv.parcVal : saldo)+'</div>'+
+          (dv.parcTeam ? '<div class="div-tot">saldo: '+fK(saldo)+'</div>' :
+           dv.total ? '<div class="div-tot">total: '+fK(dv.total)+'</div>' : '')+
+        '</div>'+
+      '</div>'+
+      '<div class="div-prog">'+
+        '<div class="div-prog-bar"><div class="div-prog-fill" style="width:'+pct+'%"></div></div>'+
+        '<div class="div-prog-lbl"><span>'+(dv.quitada?'Quitada 🎉':pct+'% pago')+'</span>'+
+          '<span>'+fK(saldo)+' restante</span></div>'+
+      '</div>'+
+      actsHtml+
+    '</div>';
+  }).join('');
+}
+
+function saldoDiv(dv) {
+  if (dv.quitada) return 0;
+  if (dv.parcTeam) return Math.max(0, (dv.parcTot - dv.parcPagas) * dv.parcVal);
+  return Math.max(0, (dv.total||0) - (dv.pago||0));
+}
+function pctDiv(dv) {
+  if (dv.quitada) return 100;
+  if (dv.parcTeam) { if (!dv.parcTot) return 0; return Math.min(100,Math.round((dv.parcPagas/dv.parcTot)*100)); }
+  if (!dv.total) return 0;
+  return Math.min(100, Math.round(((dv.pago||0)/dv.total)*100));
+}
+
+function filtrarDividas(btn) {
+  document.querySelectorAll('.div-fil').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  _divFiltro = btn.getAttribute('data-f');
+  renderDividas();
+}
+
+function abrirModalDivida() {
+  document.getElementById('m-div-titulo').textContent = 'Nova dívida';
+  ['dv-nome','dv-total','dv-pago','dv-obs','dv-parc-val','dv-parc-tot','dv-parc-pagas'].forEach(function(id){
+    var e=document.getElementById(id); if(e) e.value='';
+  });
+  document.getElementById('dv-venc').value = new Date().toISOString().split('T')[0];
+  document.getElementById('dv-parc-on').checked = false;
+  document.getElementById('dv-periodo').value = 'mensal';
+  document.getElementById('dv-parc-fields').classList.remove('on');
+  document.getElementById('dv-edit-idx').value = '-1';
+  document.getElementById('div-resumo-modal').textContent = '';
+  abrirM('divida');
+}
+
+function editarDivida(i) {
+  var dv = S.dividas[i];
+  document.getElementById('m-div-titulo').textContent = 'Editar dívida';
+  document.getElementById('dv-nome').value  = dv.nm;
+  document.getElementById('dv-total').value = dv.total||'';
+  document.getElementById('dv-pago').value  = dv.pago||'';
+  document.getElementById('dv-obs').value   = dv.obs||'';
+  document.getElementById('dv-venc').value  = dv.venc||'';
+  var temParc = !!dv.parcTeam;
+  document.getElementById('dv-parc-on').checked  = temParc;
+  document.getElementById('dv-parc-val').value   = dv.parcVal||'';
+  document.getElementById('dv-parc-tot').value   = dv.parcTot||'';
+  document.getElementById('dv-parc-pagas').value = dv.parcPagas||'';
+  document.getElementById('dv-periodo').value    = dv.periodo||'mensal';
+  document.getElementById('dv-parc-fields').classList.toggle('on', temParc);
+  document.getElementById('dv-edit-idx').value = i;
+  atualizarResumoDiv(); abrirM('divida');
+}
+
+function toggleParcDiv() {
+  document.getElementById('dv-parc-fields').classList.toggle('on', document.getElementById('dv-parc-on').checked);
+  atualizarResumoDiv();
+}
+
+function atualizarResumoDiv() {
+  var el  = document.getElementById('div-resumo-modal');
+  if (!el) return;
+  var on  = document.getElementById('dv-parc-on').checked;
+  if (on) {
+    var pv=parseFloat(document.getElementById('dv-parc-val').value)||0;
+    var pt=parseInt(document.getElementById('dv-parc-tot').value)||0;
+    var pp=parseInt(document.getElementById('dv-parc-pagas').value)||0;
+    var per=PERIODO_LBL[document.getElementById('dv-periodo').value]||'';
+    if (pv&&pt) { var r=Math.max(0,pt-pp); el.innerHTML='📊 '+r+'x de '+fR(pv)+' = <strong>'+fR(r*pv)+'</strong> restante · '+per.toLowerCase(); }
+    else el.textContent='';
+  } else {
+    var tot=parseFloat(document.getElementById('dv-total').value)||0;
+    var pago=parseFloat(document.getElementById('dv-pago').value)||0;
+    if (tot) { var r2=Math.max(0,tot-pago); var p=tot?Math.round((pago/tot)*100):0; el.innerHTML='📊 Pago: '+fK(pago)+' · Restante: <strong>'+fK(r2)+'</strong> ('+p+'%)'; }
+    else el.textContent='';
+  }
+}
+
+function salvarDivida() {
+  var nm=document.getElementById('dv-nome').value.trim();
+  if (!nm) { toast('Digite o nome da dívida'); return; }
+  var idx=parseInt(document.getElementById('dv-edit-idx').value);
+  var on=document.getElementById('dv-parc-on').checked;
+  var venc=document.getElementById('dv-venc').value;
+  var obs=document.getElementById('dv-obs').value.trim();
+  var obj={nm:nm,venc:venc,obs:obs,quitada:false};
+  if (on) {
+    var pv=parseFloat(document.getElementById('dv-parc-val').value)||0;
+    var pt=parseInt(document.getElementById('dv-parc-tot').value)||0;
+    var pp=parseInt(document.getElementById('dv-parc-pagas').value)||0;
+    var per=document.getElementById('dv-periodo').value;
+    if (!pv||!pt) { toast('Preencha valor e total de parcelas'); return; }
+    obj.parcTeam=true; obj.parcVal=pv; obj.parcTot=pt; obj.parcPagas=pp;
+    obj.periodo=per; obj.total=pt*pv; obj.pago=pp*pv;
+  } else {
+    var tot=parseFloat(document.getElementById('dv-total').value)||0;
+    var pago=parseFloat(document.getElementById('dv-pago').value)||0;
+    if (!tot) { toast('Digite o valor total da dívida'); return; }
+    obj.total=tot; obj.pago=pago;
+  }
+  if (!S.dividas) S.dividas=[];
+  if (idx>=0) { obj.quitada=S.dividas[idx].quitada||false; S.dividas[idx]=obj; toast('Dívida atualizada ✓'); }
+  else { S.dividas.unshift(obj); toast('Dívida adicionada ✓'); }
+  fecharM('divida'); salvar(); renderDividas();
+}
+
+function pagarParcelaDiv(i) {
+  var dv=S.dividas[i];
+  var rest=dv.parcTot-dv.parcPagas;
+  if (rest<=0) { toast('Todas as parcelas já foram pagas'); return; }
+  if (!confirm('Pagar 1 parcela de '+fR(dv.parcVal)+'?')) return;
+  dv.parcPagas++; dv.pago=dv.parcPagas*dv.parcVal;
+  var dp=PERIODO_DIAS[dv.periodo||'mensal']||30;
+  var nv=new Date((dv.venc||new Date().toISOString().split('T')[0])+'T12:00:00');
+  nv.setDate(nv.getDate()+dp); dv.venc=nv.toISOString().split('T')[0];
+  if (dv.parcPagas>=dv.parcTot) { dv.quitada=true; toast('🎉 "'+dv.nm+'" totalmente quitada!'); }
+  else { toast('✅ Parcela paga! Restam '+(dv.parcTot-dv.parcPagas)+'x · Próx. '+nv.toLocaleDateString('pt-BR')); }
+  salvar(); renderDividas();
+}
+
+function quitarDivida(i) {
+  if (!confirm('Marcar "'+S.dividas[i].nm+'" como quitada?')) return;
+  S.dividas[i].quitada=true; S.dividas[i].pago=S.dividas[i].total;
+  salvar(); renderDividas(); toast('🎉 Quitada!');
+}
+
+function excluirDivida(i) {
+  if (!confirm('Excluir "'+S.dividas[i].nm+'"?')) return;
+  S.dividas.splice(i,1); salvar(); renderDividas(); toast('Dívida excluída');
+}
+
+// ── CONFIGURAÇÕES / TEMA ──────────────────────────────────
+var _tema = 'escuro';
+function setTema(t) { _tema=t; localStorage.setItem('mr_tema',t); aplicarTema(); renderConfig(); }
+function aplicarTema() {
+  document.body.classList.toggle('tema-claro', _tema==='claro');
+  var cor=_tema==='claro'?'#f5f5f0':'#0f0f0f';
+  var mt=document.querySelector('meta[name="theme-color"]'); if(mt) mt.setAttribute('content',cor);
+}
+function carregarTema() { _tema=localStorage.getItem('mr_tema')||'escuro'; aplicarTema(); }
+function renderConfig() {
+  var e=document.getElementById('tema-escuro'); var c=document.getElementById('tema-claro');
+  if(e) e.classList.toggle('on',_tema==='escuro');
+  if(c) c.classList.toggle('on',_tema==='claro');
+}
+
+
+
 function exportarDados() {
   var todos = { versao: VER, data: new Date().toISOString(), usuarios: dbUsrs(), dados: {} };
   var usrs = dbUsrs();
@@ -2466,6 +2923,7 @@ function init() {
   setDpill();
   gerarManifest();
   registrarSW();
+  carregarTema();
 
   // data padrão
   var dataEl = document.getElementById('data-reg');
@@ -2483,7 +2941,7 @@ function init() {
   initTab('sai-tabs',['sai-dia','sai-sem','sai-qui','sai-mes']);
   initTab('gr-tabs', ['gr-dia','gr-bar','gr-qui','gr-mes','gr-pie']);
 
-  ['m-conta','m-emoji','m-usr','m-backup','m-editdia'].forEach(function(id){
+  ['m-conta','m-emoji','m-usr','m-backup','m-editdia','m-divida'].forEach(function(id){
     var el=document.getElementById(id);
     if(el) el.addEventListener('click',function(e){
       if(e.target===this) fecharM(id.replace('m-',''));
