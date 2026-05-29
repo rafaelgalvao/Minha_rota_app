@@ -8,20 +8,18 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MinhaRota">
 <link rel="manifest" id="pwa-manifest">
-<title>MinhaRota v0.6.0-beta</title>
+<title>MinhaRota v0.7.0-beta</title>
 <style>
 /* ═══════════════════════════════════════════
-   MinhaRota · v0.6.0-beta
-   UI: 0.6 | Lógica: 0.6 | DB: 0.5
+   MinhaRota · v0.7.0-beta
+   UI: 0.7 | Lógica: 0.7 | DB: 0.5
    Changelog:
-   [0.6.0-beta] Dívidas + Configurações + Temas
-   - Nova aba Dívidas: cadastro de dívidas antigas
-   - Dívidas: parceladas ou valor total, com prazo
-   - Dívidas: editar, excluir, marcar parcela paga
-   - Dívidas: progresso visual por dívida
-   - Config: tema claro / escuro (persistido)
-   - Config: backup e dados na mesma tela
-   - Nav: ícone ⚙️ de configurações
+   [0.7.0-beta] Meta de valor por caixinha
+   - Campo de meta (R$) em cada caixinha
+   - Barra de progresso: guardado vs meta
+   - % atingido e valor restante exibidos
+   - Card de depósito mostra progresso da meta
+   - Visão geral destaca caixinhas concluídas
 ═══════════════════════════════════════════ */
 
 :root {
@@ -358,7 +356,22 @@ canvas { display: block; width: 100% !important; }
 .exrow-val.ent { color: var(--grn); }
 .exrow-val.sai { color: var(--red); }
 .exrow-val.gst { color: var(--amb); }
-/* ── DÍVIDAS ── */
+/* ── META DA CAIXINHA ── */
+.cxa-meta-bar-wrap { margin: 6px 0 2px; }
+.cxa-meta-bar { height: 5px; background: var(--bg4); border-radius: 3px; overflow: hidden; }
+.cxa-meta-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+.cxa-meta-lbl  { display: flex; justify-content: space-between; font-size: 10px; color: var(--mut); margin-top: 3px; }
+.cxa-meta-lbl .done { color: var(--grn); font-weight: 700; }
+.cxa-concluida { border-color: var(--grn) !important; }
+.cxa-concluida .cxaem::after { content: ' ✅'; font-size: 10px; }
+
+.dep-meta-bar  { height: 4px; background: var(--bg4); border-radius: 2px; overflow: hidden; margin: 6px 0 2px; }
+.dep-meta-fill { height: 100%; border-radius: 2px; transition: width .4s; }
+.dep-meta-info { font-size: 11px; color: var(--mut); display: flex; justify-content: space-between; }
+.dep-meta-info .done { color: var(--grn); font-weight: 700; }
+
+.pinp-meta { width: 90px; background: var(--bg3); border: 1px solid var(--brd); border-radius: var(--rs); padding: 5px 8px; font-size: 13px; color: var(--txt); font-family: inherit; outline: none; }
+.pinp-meta:focus { border-color: var(--grn); }
 .div-card { background: var(--bg2); border: 1px solid var(--brd); border-radius: var(--r); padding: 14px 16px; margin-bottom: 10px; }
 .div-header { display: flex; align-items: flex-start; gap: 10px; }
 .div-ico { width: 36px; height: 36px; border-radius: var(--rs); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; background: rgba(231,76,60,.1); }
@@ -417,7 +430,7 @@ canvas { display: block; width: 100% !important; }
 
 <!-- HEADER -->
 <header class="hdr">
-  <div class="logo">MINHA<em>ROTA</em><small>v0.6.0-beta</small></div>
+  <div class="logo">MINHA<em>ROTA</em><small>v0.7.0-beta</small></div>
   <div class="hdr-right">
     <div class="pill" id="dpill"></div>
     <div class="usr-pill" id="upill" onclick="abrirM('usr')" title="Trocar usuário">👤 —</div>
@@ -858,7 +871,7 @@ canvas { display: block; width: 100% !important; }
   </button>
 </nav>
 
-<div class="ver">v0.6.0-beta · UI:0.6 · DB:0.5</div>
+<div class="ver">v0.7.0-beta · UI:0.7 · DB:0.5</div>
 
 <!-- MODAL: CONTA -->
 <div class="mov" id="m-conta">
@@ -1036,7 +1049,7 @@ canvas { display: block; width: 100% !important; }
   ──────────────────────────────────────────────────────────
 */
 
-var VER      = '0.6.0-beta';
+var VER      = '0.7.0-beta';
 var KEY_USRS = 'mr_users';
 var KEY_CURR = 'mr_curr';
 
@@ -1515,12 +1528,31 @@ function totalGuardadoCaixa(cxId) {
 function renderBgr() {
   var el=document.getElementById('bgr'); if(!el) return;
   var pcts=getPcts();
-  // calcula liq do dia para mostrar distribuição estimada
   var lqDia = S.liq || 0;
   el.innerHTML=S.caixas.map(function(cx,i){
     var pe=pcts[i]||0, val=lqDia*pe/100;
     var guardado = totalGuardadoCaixa(cx.id);
-    return '<div class="cxa'+(cx.pau?' pau':'')+'">'+
+    var meta = parseFloat(cx.meta)||0;
+    var metaHtml = '';
+    if (meta > 0) {
+      var pct  = Math.min(100, Math.round((guardado/meta)*100));
+      var rest = Math.max(0, meta - guardado);
+      var cor  = pct >= 100 ? '#2ecc71' : (cx.cor||'#2ecc71');
+      var done = pct >= 100;
+      metaHtml =
+        '<div class="cxa-meta-bar-wrap">'+
+          '<div class="cxa-meta-bar">'+
+            '<div class="cxa-meta-fill" style="width:'+pct+'%;background:'+cor+'"></div>'+
+          '</div>'+
+          '<div class="cxa-meta-lbl">'+
+            '<span class="'+(done?'done':'')+'">Meta: '+fK(meta)+'</span>'+
+            '<span class="'+(done?'done':'')+'">'+
+              (done ? '✅ Concluída!' : pct+'% · falta '+fK(rest))+
+            '</span>'+
+          '</div>'+
+        '</div>';
+    }
+    return '<div class="cxa'+(cx.pau?' pau':'')+(meta>0&&guardado>=meta?' cxa-concluida':'')+'">'+
       '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+
         '<div class="cxaem">'+cx.em+'</div>'+
         (cx.pau?'<span style="font-size:9px;color:var(--amb)">PAUSADA</span>':'')+
@@ -1533,6 +1565,7 @@ function renderBgr() {
       '</div>'+
       '<div class="mbar"><div class="mfil" style="background:'+(cx.cor||'#2ecc71')+';width:'+Math.round(pe)+'%"></div></div>'+
       '<div class="cxapc">'+Math.round(pe)+'% · guardado: '+fK(guardado)+'</div>'+
+      metaHtml+
     '</div>';
   }).join('');
 }
@@ -1557,6 +1590,8 @@ function renderDepList() {
     var depositouHoje = (S.depositos||[]).some(function(d){
       return d.cxId===cx.id && d.dt===hojeStr;
     });
+    var meta    = parseFloat(cx.meta)||0;
+    var metaPct = meta > 0 ? Math.min(100, Math.round((guardado/meta)*100)) : 0;
     return '<div class="dep-card">'+
       '<div class="dep-header">'+
         '<div class="dep-em">'+cx.em+'</div>'+
@@ -1569,6 +1604,14 @@ function renderDepList() {
           '<div class="dep-pct">'+Math.round(pe)+'% do dia</div>'+
         '</div>'+
       '</div>'+
+      (meta > 0 ?
+        '<div class="dep-meta-bar"><div class="dep-meta-fill" style="width:'+metaPct+'%;background:'+(metaPct>=100?'#2ecc71':(cx.cor||'#2ecc71'))+'"></div></div>'+
+        '<div class="dep-meta-info">'+
+          '<span>Meta: '+fK(meta)+'</span>'+
+          '<span class="'+(metaPct>=100?'done':'')+'">'+
+            (metaPct>=100 ? '✅ Concluída!' : metaPct+'% · falta '+fK(Math.max(0,meta-guardado)))+
+          '</span>'+
+        '</div>' : '')+
       '<div class="dep-footer">'+
         '<div class="dep-guardado">'+
           '<div class="dep-guardado-lbl">Total guardado</div>'+
@@ -1605,6 +1648,9 @@ var eIdx=null;
 function renderCfg() {
   var el=document.getElementById('cfg-list'); if(!el) return;
   el.innerHTML=S.caixas.map(function(cx,i){
+    var meta = parseFloat(cx.meta)||0;
+    var guardado = totalGuardadoCaixa(cx.id);
+    var metaPct = meta > 0 ? Math.min(100, Math.round((guardado/meta)*100)) : 0;
     return '<div class="cfgi">'+
       '<div class="cfgr">'+
         '<span class="cfgem" onclick="abrirEmoji('+i+')" title="Trocar emoji">'+cx.em+'</span>'+
@@ -1621,6 +1667,15 @@ function renderCfg() {
           '<option value="mes"'    +(cx.per==='mes'?    ' selected':'')+'>Mês</option>'+
         '</select>'+
         '<button class="bsm '+(cx.pau?'pau':'')+'" style="margin-left:4px" onclick="pausarCxa('+i+')">'+(cx.pau?'Retomar':'Pausar')+'</button>'+
+      '</div>'+
+      '<div class="cfgb" style="margin-top:4px;align-items:center">'+
+        '<label>🎯 Meta (R$):</label>'+
+        '<input class="pinp-meta" type="number" value="'+(cx.meta||'')+'" min="0" step="0.01" placeholder="Sem meta"'+
+          ' onchange="updCxa('+i+',\'meta\',parseFloat(this.value)||0)">'+
+        (meta > 0 ?
+          '<span style="margin-left:8px;font-size:11px;color:'+(metaPct>=100?'var(--grn)':'var(--mut)')+'">'+
+            (metaPct>=100 ? '✅ Concluída!' : metaPct+'% atingido')+
+          '</span>' : '')+
       '</div>'+
     '</div>';
   }).join('');
