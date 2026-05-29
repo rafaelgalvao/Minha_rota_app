@@ -8,26 +8,22 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MinhaRota">
 <link rel="manifest" id="pwa-manifest">
-<title>MinhaRota v0.9.0-beta</title>
+<title>MinhaRota v1.0.0-beta</title>
 <style>
 /* ═══════════════════════════════════════════
-   MinhaRota · v0.9.0-beta
-   UI: 0.9 | Lógica: 0.9 | DB: 0.5
+   MinhaRota · v1.0.0-beta
+   UI: 1.0 | Lógica: 1.0 | DB: 0.6
    Changelog:
-   [0.9.0-beta] Gestão MEI
-   - Nova seção na aba Contas: Gestão MEI
-   - Banner DAS: aviso automático entre dias 15-20 do mês
-   - Termômetro de faturamento anual vs teto MEI (R$ 81.000)
-   - Barra de progresso com % do limite atingido
-   - Cor muda: verde → amarelo (>70%) → vermelho (>90%)
-   - Valor faturado no ano vs margem restante
-   [0.8.0-beta] Horários de Ouro (Analytics)
-   - Nova aba nos Gráficos: Horários de Ouro
-   - Mapa de calor: dia da semana × faixa horária
-   - Mostra R$/h médio por célula (cor = intensidade)
-   - Cards de destaque: melhor dia, melhor horário
-   - Ranking dos 3 melhores blocos de horário
-   - Análise automática do histórico (ini/fim/lq)
+   [1.0.0-beta] Garagem + Correções
+   - CORRIGIDO: tema claro CSS quebrado (variáveis órfãs)
+   - CORRIGIDO: inputs sobrepostos / layout desalinhado
+   - NOVO: Aba Garagem (manutenção da moto)
+   - Atualização de km do painel
+   - Alertas personalizados por km (troca de óleo, etc)
+   - Cálculo automático de km faltando para cada item
+   - Alerta visual no Dashboard quando < 100km
+   [0.9.0-beta] Drawer + MEI
+   [0.8.0-beta] Horários de Ouro
 ═══════════════════════════════════════════ */
 
 :root {
@@ -87,7 +83,8 @@
 .mei-projecao { font-size: 12px; color: var(--mut); margin-top: 10px; line-height: 1.5; padding-top: 10px; border-top: 1px solid var(--brd); }
 .mei-projecao strong { color: var(--txt); }
 
-
+/* ── TEMA CLARO ── */
+body.tema-claro {
   --bg:  #e8e8e4;
   --bg2: #f0efeb;
   --bg3: #e0dfdb;
@@ -643,6 +640,54 @@ canvas { display: block; width: 100% !important; }
 
 /* Drawer tema-grid inside drawer */
 .drawer-tema-wrap { padding: 10px 16px 14px; }
+
+/* ══════════════════════════════════════
+   GARAGEM — CSS
+══════════════════════════════════════ */
+.garage-km-hero { text-align: center; padding: 10px 0 16px; }
+.garage-km-val  { font-family: 'Courier New', Courier, monospace; font-size: 42px; font-weight: 700; color: var(--grn); line-height: 1; }
+.garage-km-lbl  { font-size: 12px; color: var(--mut); margin-top: 5px; }
+.garage-km-edit { display: flex; gap: 8px; margin-top: 10px; }
+.garage-km-inp  { flex: 1; background: var(--bg3); border: 1px solid var(--brd); border-radius: var(--rs); padding: 9px 12px; font-size: 16px; font-family: 'Courier New', Courier, monospace; color: var(--txt); outline: none; text-align: center; }
+.garage-km-inp:focus { border-color: var(--grn); }
+.garage-km-btn  { padding: 9px 18px; background: var(--grn); color: #000; border: none; border-radius: var(--rs); font-size: 14px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+
+.garage-alert-card { border-radius: var(--r); padding: 14px 16px; margin-bottom: 10px; border: 1px solid var(--brd); background: var(--bg2); }
+.garage-alert-card.wn { border-color: rgba(240,165,0,.5); background: rgba(240,165,0,.06); }
+.garage-alert-card.cr { border-color: rgba(231,76,60,.5); background: rgba(231,76,60,.06); }
+.garage-alert-card.done{ opacity: .5; }
+.garage-alert-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.garage-alert-em  { font-size: 22px; flex-shrink: 0; }
+.garage-alert-inf { flex: 1; min-width: 0; }
+.garage-alert-nm  { font-size: 14px; font-weight: 700; color: var(--txt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.garage-alert-sb  { font-size: 11px; color: var(--mut); margin-top: 1px; }
+.garage-alert-km  { font-family: 'Courier New', Courier, monospace; font-size: 15px; font-weight: 700; flex-shrink: 0; text-align: right; }
+.garage-alert-km.ok   { color: var(--grn); }
+.garage-alert-km.wn   { color: var(--amb); }
+.garage-alert-km.cr   { color: var(--red); }
+.garage-alert-km.done { color: var(--mut); text-decoration: line-through; }
+.garage-pbar { height: 6px; background: var(--bg3); border-radius: 99px; overflow: hidden; margin: 5px 0 4px; }
+.garage-pfil { height: 100%; border-radius: 99px; transition: width .4s; }
+.garage-pfil.ok { background: var(--grn); }
+.garage-pfil.wn { background: var(--amb); }
+.garage-pfil.cr { background: var(--red); }
+.garage-alert-sub { font-size: 11px; color: var(--mut); display: flex; justify-content: space-between; }
+.garage-alert-acts { display: flex; gap: 6px; margin-top: 10px; border-top: 1px solid var(--brd); padding-top: 8px; }
+.garage-reset-btn { flex: 1; padding: 7px; border-radius: var(--rs); font-size: 12px; cursor: pointer; font-family: inherit; border: 1px solid rgba(46,204,113,.35); background: rgba(46,204,113,.08); color: var(--grn); font-weight: 600; text-align: center; }
+.garage-del-btn { padding: 7px 12px; border-radius: var(--rs); font-size: 12px; cursor: pointer; font-family: inherit; border: 1px solid rgba(231,76,60,.3); background: rgba(231,76,60,.08); color: var(--red); }
+
+/* Alerta no Dashboard (aba Hoje) */
+.garage-dash { border-radius: var(--r); padding: 12px 14px; margin-bottom: 12px; border: 1px solid rgba(240,165,0,.45); background: rgba(240,165,0,.07); }
+.garage-dash.cr { border-color: rgba(231,76,60,.5); background: rgba(231,76,60,.07); }
+.garage-dash-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.garage-dash-hdr-ico { font-size: 18px; }
+.garage-dash-hdr strong { font-size: 13px; font-weight: 700; color: var(--amb); }
+.garage-dash.cr .garage-dash-hdr strong { color: var(--red); }
+.garage-dash-items { display: flex; flex-direction: column; gap: 3px; }
+.garage-dash-item { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--mut); padding: 2px 0; }
+.garage-dash-item strong { font-family: 'Courier New', Courier, monospace; font-size: 12px; }
+.garage-dash-item strong.wn { color: var(--amb); }
+.garage-dash-item strong.cr { color: var(--red); }
 </style>
 </head>
 <body>
@@ -652,7 +697,7 @@ canvas { display: block; width: 100% !important; }
   <button class="menu-btn" onclick="abrirDrawer()" title="Menu">
     <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
-  <div class="logo">MINHA<em>ROTA</em><small>v0.9.0-beta</small></div>
+  <div class="logo">MINHA<em>ROTA</em><small>v1.0.0-beta</small></div>
   <div class="hdr-right">
     <div class="pill" id="dpill"></div>
     <div class="usr-pill" id="upill" onclick="abrirM('usr')" title="Trocar usuário">👤 —</div>
@@ -673,6 +718,9 @@ canvas { display: block; width: 100% !important; }
     </div>
     <button class="pwa-btn" id="pwa-install-btn" onclick="instalarPWA()">Instalar</button>
   </div>
+
+  <!-- Alertas de manutenção da Garagem -->
+  <div id="garage-dash-wrap"></div>
 
   <div class="card">
     <div class="ctit">
@@ -1135,6 +1183,28 @@ canvas { display: block; width: 100% !important; }
   </div>
 
 </div>
+<!-- ══════════ GARAGEM ══════════ -->
+<div id="pg-garagem" class="pg">
+
+  <!-- KM Atual -->
+  <div class="card">
+    <div class="ctit">🏍 Quilometragem atual</div>
+    <div class="garage-km-hero">
+      <div class="garage-km-val" id="garage-km-display">0</div>
+      <div class="garage-km-lbl">km no painel</div>
+    </div>
+    <div class="garage-km-edit">
+      <input class="garage-km-inp" type="number" id="garage-km-inp" placeholder="Ex: 23500" min="0" step="1">
+      <button class="garage-km-btn" onclick="salvarKm()">Atualizar</button>
+    </div>
+  </div>
+
+  <!-- Alertas de manutenção -->
+  <div class="seclb">Manutenções</div>
+  <div id="garage-lista"></div>
+  <button class="badd" onclick="abrirM('garage-item')">+ Adicionar manutenção</button>
+
+</div>
 
 </main>
 
@@ -1164,9 +1234,13 @@ canvas { display: block; width: 100% !important; }
     <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     Gráficos
   </button>
+  <button class="nb" data-pg="garagem" onclick="irPara(this)">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    Garagem
+  </button>
 </nav>
 
-<div class="ver">v0.8.0-beta · UI:0.8 · DB:0.5</div>
+<div class="ver">v1.0.0-beta · UI:1.0 · DB:0.6</div>
 
 <!-- MODAL: CONTA -->
 <div class="mov" id="m-conta">
@@ -1382,6 +1456,14 @@ canvas { display: block; width: 100% !important; }
       </div>
       <div class="drawer-row-arr">›</div>
     </div>
+    <div class="drawer-row" onclick="fecharDrawer();irParaGaragem()">
+      <div class="drawer-row-ico" style="background:rgba(240,165,0,.12)">🏍</div>
+      <div class="drawer-row-txt">
+        <div class="drawer-row-nm">Garagem</div>
+        <div class="drawer-row-sb">Manutenção e desgaste da moto</div>
+      </div>
+      <div class="drawer-row-arr">›</div>
+    </div>
   </div>
 
   <div class="drawer-sec">Suporte</div>
@@ -1402,7 +1484,7 @@ canvas { display: block; width: 100% !important; }
       <div class="drawer-row-ico" style="background:rgba(46,204,113,.12)">🏍</div>
       <div class="drawer-row-txt">
         <div class="drawer-row-nm">MinhaRota</div>
-        <div class="drawer-row-sb">v0.8.0-beta · Controle para entregadores</div>
+        <div class="drawer-row-sb">v1.0.0-beta · Controle para entregadores</div>
       </div>
     </div>
   </div>
@@ -1579,6 +1661,37 @@ canvas { display: block; width: 100% !important; }
   </div>
 </div>
 
+<!-- MODAL: ITEM DE GARAGEM -->
+<div class="mov" id="m-garage-item">
+  <div class="mod">
+    <h3 id="m-garage-titulo">Nova manutenção</h3>
+    <div class="f"><label>Nome</label><input type="text" id="gi-nome" placeholder="Ex: Troca de óleo, Relação, Pastilha..."></div>
+    <div class="g2">
+      <div class="f"><label>Intervalo (km)</label><input type="number" id="gi-km-int" placeholder="Ex: 1000" min="1" step="1"></div>
+      <div class="f"><label>Último serviço (km)</label><input type="number" id="gi-km-ult" placeholder="Ex: 22500" min="0" step="1"></div>
+    </div>
+    <div class="f">
+      <label>Ícone</label>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+        <span style="font-size:22px;cursor:pointer;padding:4px 6px;border-radius:6px" onclick="selecionarGarageEm(this,'🔧')">🔧</span>
+        <span style="font-size:22px;cursor:pointer;padding:4px 6px;border-radius:6px" onclick="selecionarGarageEm(this,'🛢️')">🛢️</span>
+        <span style="font-size:22px;cursor:pointer;padding:4px 6px;border-radius:6px" onclick="selecionarGarageEm(this,'⚙️')">⚙️</span>
+        <span style="font-size:22px;cursor:pointer;padding:4px 6px;border-radius:6px" onclick="selecionarGarageEm(this,'🔩')">🔩</span>
+        <span style="font-size:22px;cursor:pointer;padding:4px 6px;border-radius:6px" onclick="selecionarGarageEm(this,'💡')">💡</span>
+        <span style="font-size:22px;cursor:pointer;padding:4px 6px;border-radius:6px" onclick="selecionarGarageEm(this,'🏁')">🏁</span>
+        <span style="font-size:22px;cursor:pointer;padding:4px 6px;border-radius:6px" onclick="selecionarGarageEm(this,'🚨')">🚨</span>
+        <span style="font-size:22px;cursor:pointer;padding:4px 6px;border-radius:6px" onclick="selecionarGarageEm(this,'🛞')">🛞</span>
+      </div>
+      <input type="hidden" id="gi-em" value="🔧">
+      <input type="hidden" id="gi-edit-idx" value="-1">
+    </div>
+    <div class="mact">
+      <button class="bcan" onclick="fecharM('garage-item')">Cancelar</button>
+      <button class="bsav" onclick="salvarGarageItem()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- ════════════════════════ SCRIPT ════════════════════════ -->
@@ -1703,6 +1816,7 @@ function novoEstado() {
     folgas:[0,3],
     contas:[], hist:[], pagas:[], depositos:[],
     dividas:[],
+    garagem: { km: 0, itens: [] },
     caixas: JSON.parse(JSON.stringify(CAIXAS_PAD)),
     nid:5
   };
@@ -1730,6 +1844,8 @@ function carregarUsr(uid) {
     if (!Array.isArray(S.pagas))     S.pagas     = [];
     if (!Array.isArray(S.depositos)) S.depositos = [];
     if (!S.nid)                      S.nid       = 5;
+    if (!S.garagem)                  S.garagem   = { km: 0, itens: [] };
+    if (!Array.isArray(S.garagem.itens)) S.garagem.itens = [];
     recarregarUI();
   });
 }
@@ -1825,6 +1941,7 @@ function recarregarUI() {
   renderBgr();
   renderDepList();
   calcDia();
+  renderGarageDash();
 }
 
 // ── UTIL ──────────────────────────────────────────────────
@@ -1878,9 +1995,18 @@ function irPara(btn) {
   if (pg==='extrato')  iniciarExtrato();
   if (pg==='dividas')  renderDividas();
   if (pg==='config')   renderConfig();
+  if (pg==='garagem')  renderGaragem();
 }
 function irParaSemana() {
   var btn = document.querySelector('.nb[data-pg="semana"]');
+  if (btn) irPara(btn);
+}
+function irParaGaragem() {
+  var btn = document.querySelector('.nb[data-pg="garagem"]');
+  if (btn) irPara(btn);
+}
+function irParaConfig() {
+  var btn = document.querySelector('.nb[data-pg="config"]');
   if (btn) irPara(btn);
 }
 
@@ -2541,6 +2667,7 @@ var _abrirM = abrirM;
 abrirM = function(id) {
   if (id==='conta') abrirM_conta();
   if (id==='usr') renderUsrs();
+  if (id==='garage-item') abrirM_garage_item();
   _abrirM(id);
 };
 
@@ -4107,7 +4234,7 @@ function init() {
     if (first) { first.classList.add('open'); var b = first.nextElementSibling; if(b) b.classList.add('on'); }
   }, 100);
 
-  ['m-conta','m-emoji','m-usr','m-backup','m-editdia','m-divida','m-ajuda'].forEach(function(id){
+  ['m-conta','m-emoji','m-usr','m-backup','m-editdia','m-divida','m-ajuda','m-garage-item'].forEach(function(id){
     var el=document.getElementById(id);
     if(el) el.addEventListener('click',function(e){
       if(e.target===this) fecharM(id.replace('m-',''));
@@ -4115,6 +4242,177 @@ function init() {
   });
 
   initUsrs();
+}
+
+// ══════════════════════════════════════════════════════
+//  GARAGEM — funções
+// ══════════════════════════════════════════════════════
+
+var _garageEmSel = '🔧';
+
+function selecionarGarageEm(el, em) {
+  _garageEmSel = em;
+  document.getElementById('gi-em').value = em;
+  // destaca visualmente
+  el.parentElement.querySelectorAll('span').forEach(function(s){
+    s.style.background = '';
+  });
+  el.style.background = 'var(--bg3)';
+}
+
+function salvarKm() {
+  var v = parseInt(document.getElementById('garage-km-inp').value) || 0;
+  if (!v) { toast('Digite a quilometragem'); return; }
+  S.garagem.km = v;
+  salvar();
+  renderGaragem();
+  renderGarageDash();
+  document.getElementById('garage-km-inp').value = '';
+  toast('Quilometragem atualizada: '+v.toLocaleString('pt-BR')+' km ✓');
+}
+
+function abrirM_garage_item() {
+  document.getElementById('gi-nome').value    = '';
+  document.getElementById('gi-km-int').value  = '';
+  document.getElementById('gi-km-ult').value  = '';
+  document.getElementById('gi-em').value      = '🔧';
+  document.getElementById('gi-edit-idx').value = '-1';
+  document.getElementById('m-garage-titulo').textContent = 'Nova manutenção';
+  _garageEmSel = '🔧';
+  // reset highlight
+  document.querySelectorAll('#m-garage-item span[style]').forEach(function(s){ s.style.background = ''; });
+}
+
+function editarGarageItem(i) {
+  var it = S.garagem.itens[i];
+  document.getElementById('gi-nome').value     = it.nm;
+  document.getElementById('gi-km-int').value   = it.inter;
+  document.getElementById('gi-km-ult').value   = it.ult;
+  document.getElementById('gi-em').value       = it.em;
+  document.getElementById('gi-edit-idx').value = i;
+  document.getElementById('m-garage-titulo').textContent = 'Editar manutenção';
+  _garageEmSel = it.em;
+  abrirM('garage-item');
+}
+
+function salvarGarageItem() {
+  var nm   = document.getElementById('gi-nome').value.trim();
+  var inter = parseInt(document.getElementById('gi-km-int').value) || 0;
+  var ult  = parseInt(document.getElementById('gi-km-ult').value);
+  if (isNaN(ult)) ult = S.garagem.km;
+  var em   = document.getElementById('gi-em').value || '🔧';
+  var idx  = parseInt(document.getElementById('gi-edit-idx').value);
+  if (!nm || !inter) { toast('Preencha nome e intervalo'); return; }
+  var item = { nm: nm, inter: inter, ult: ult, em: em, id: Date.now() };
+  if (idx >= 0) {
+    item.id = S.garagem.itens[idx].id;
+    S.garagem.itens[idx] = item;
+  } else {
+    S.garagem.itens.push(item);
+  }
+  salvar();
+  fecharM('garage-item');
+  renderGaragem();
+  renderGarageDash();
+  toast(nm + ' salvo ✓');
+}
+
+function resetarGarageItem(i) {
+  var km = S.garagem.km;
+  if (!km) { toast('Atualize a quilometragem primeiro'); return; }
+  S.garagem.itens[i].ult = km;
+  salvar();
+  renderGaragem();
+  renderGarageDash();
+  toast('Manutenção registrada em ' + km.toLocaleString('pt-BR') + ' km ✓');
+}
+
+function removerGarageItem(i) {
+  if (!confirm('Remover "' + S.garagem.itens[i].nm + '"?')) return;
+  S.garagem.itens.splice(i, 1);
+  salvar();
+  renderGaragem();
+  renderGarageDash();
+}
+
+function getGarageStatus(item, kmAtual) {
+  var proxKm = item.ult + item.inter;
+  var faltam = proxKm - kmAtual;
+  var pct    = Math.min(100, Math.round((kmAtual - item.ult) / item.inter * 100));
+  var cls    = faltam <= 0 ? 'cr' : faltam <= 100 ? 'cr' : faltam <= 300 ? 'wn' : 'ok';
+  return { proxKm: proxKm, faltam: faltam, pct: pct, cls: cls };
+}
+
+function renderGaragem() {
+  var km = S.garagem.km || 0;
+  var el = document.getElementById('garage-km-display');
+  if (el) el.textContent = km.toLocaleString('pt-BR');
+
+  var lista = document.getElementById('garage-lista');
+  if (!lista) return;
+  if (!S.garagem.itens.length) {
+    lista.innerHTML = '<p class="empty">Nenhuma manutenção cadastrada.<br>Adicione abaixo para começar a monitorar.</p>';
+    return;
+  }
+  lista.innerHTML = S.garagem.itens.map(function(it, i) {
+    var st = getGarageStatus(it, km);
+    var faltamTxt = st.faltam <= 0
+      ? '⚠️ VENCIDA ' + Math.abs(st.faltam).toLocaleString('pt-BR') + ' km atrás'
+      : st.faltam.toLocaleString('pt-BR') + ' km restantes';
+    return '<div class="garage-alert-card ' + st.cls + '">' +
+      '<div class="garage-alert-hdr">' +
+        '<span class="garage-alert-em">' + it.em + '</span>' +
+        '<div class="garage-alert-inf">' +
+          '<div class="garage-alert-nm">' + it.nm + '</div>' +
+          '<div class="garage-alert-sb">A cada ' + it.inter.toLocaleString('pt-BR') + ' km</div>' +
+        '</div>' +
+        '<div class="garage-alert-km ' + st.cls + '">' + faltamTxt + '</div>' +
+      '</div>' +
+      '<div class="garage-pbar"><div class="garage-pfil ' + st.cls + '" style="width:' + st.pct + '%"></div></div>' +
+      '<div class="garage-alert-sub">' +
+        '<span>Último: ' + it.ult.toLocaleString('pt-BR') + ' km</span>' +
+        '<span>Próximo: ' + st.proxKm.toLocaleString('pt-BR') + ' km</span>' +
+      '</div>' +
+      '<div class="garage-alert-acts">' +
+        '<button class="garage-reset-btn" onclick="resetarGarageItem(' + i + ')">✅ Registrar manutenção agora</button>' +
+        '<button class="bsm" onclick="editarGarageItem(' + i + ')" style="color:var(--blu);border-color:rgba(52,152,219,.4)">✏️</button>' +
+        '<button class="garage-del-btn" onclick="removerGarageItem(' + i + ')">🗑</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderGarageDash() {
+  var wrap = document.getElementById('garage-dash-wrap');
+  if (!wrap) return;
+  if (!S || !S.garagem || !S.garagem.itens.length) { wrap.innerHTML = ''; return; }
+  var km = S.garagem.km || 0;
+  var alertas = S.garagem.itens.filter(function(it) {
+    var faltam = (it.ult + it.inter) - km;
+    return faltam <= 100;
+  });
+  if (!alertas.length) { wrap.innerHTML = ''; return; }
+  var temCr = alertas.some(function(it) {
+    return (it.ult + it.inter) - km <= 0;
+  });
+  var cls = temCr ? 'cr' : '';
+  wrap.innerHTML = '<div class="garage-dash ' + cls + '">' +
+    '<div class="garage-dash-hdr">' +
+      '<span class="garage-dash-hdr-ico">🏍</span>' +
+      '<strong>' + (temCr ? '🚨 Manutenção vencida!' : '⚠️ Manutenção próxima') + '</strong>' +
+    '</div>' +
+    '<div class="garage-dash-items">' +
+    alertas.map(function(it) {
+      var faltam = (it.ult + it.inter) - km;
+      var c = faltam <= 0 ? 'cr' : 'wn';
+      var txt = faltam <= 0 ? 'Vencida ' + Math.abs(faltam).toLocaleString('pt-BR') + ' km atrás' : faltam.toLocaleString('pt-BR') + ' km';
+      return '<div class="garage-dash-item">' +
+        '<span>' + it.em + ' ' + it.nm + '</span>' +
+        '<strong class="' + c + '">' + txt + '</strong>' +
+      '</div>';
+    }).join('') +
+    '</div>' +
+  '</div>';
 }
 
 init();
