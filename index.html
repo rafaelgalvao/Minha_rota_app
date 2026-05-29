@@ -8,12 +8,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MinhaRota">
 <link rel="manifest" id="pwa-manifest">
-<title>MinhaRota v0.8.0-beta</title>
+<title>MinhaRota v0.9.0-beta</title>
 <style>
 /* ═══════════════════════════════════════════
-   MinhaRota · v0.8.0-beta
-   UI: 0.8 | Lógica: 0.8 | DB: 0.5
+   MinhaRota · v0.9.0-beta
+   UI: 0.9 | Lógica: 0.9 | DB: 0.5
    Changelog:
+   [0.9.0-beta] Gestão MEI
+   - Nova seção na aba Contas: Gestão MEI
+   - Banner DAS: aviso automático entre dias 15-20 do mês
+   - Termômetro de faturamento anual vs teto MEI (R$ 81.000)
+   - Barra de progresso com % do limite atingido
+   - Cor muda: verde → amarelo (>70%) → vermelho (>90%)
+   - Valor faturado no ano vs margem restante
    [0.8.0-beta] Horários de Ouro (Analytics)
    - Nova aba nos Gráficos: Horários de Ouro
    - Mapa de calor: dia da semana × faixa horária
@@ -40,8 +47,47 @@
   --rs:  8px;
 }
 
-/* ── TEMA CLARO ── */
-body.tema-claro {
+/* ── MEI ── */
+.mei-section { margin-top: 4px; }
+.mei-das-banner {
+  display: none;
+  background: linear-gradient(135deg, rgba(240,165,0,.12), rgba(240,165,0,.05));
+  border: 1px solid rgba(240,165,0,.45);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  gap: 12px;
+  align-items: flex-start;
+}
+.mei-das-banner.visivel { display: flex; }
+.mei-das-icon { font-size: 26px; flex-shrink: 0; margin-top: 2px; }
+.mei-das-txt strong { display: block; font-size: 14px; color: var(--amb); margin-bottom: 3px; font-weight: 700; }
+.mei-das-txt p { font-size: 13px; color: var(--mut); line-height: 1.4; }
+.mei-das-txt a { color: var(--amb); text-decoration: none; font-weight: 600; }
+.mei-termo-card { background: var(--bg2); border: 1px solid var(--brd); border-radius: var(--r); padding: 16px; margin-bottom: 12px; }
+.mei-termo-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.mei-termo-title { font-family: 'Courier New', Courier, monospace; font-size: 10px; letter-spacing: .08em; color: var(--mut); text-transform: uppercase; }
+.mei-termo-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; }
+.mei-termo-badge.ok  { background: rgba(46,204,113,.15); color: var(--grn); }
+.mei-termo-badge.wn  { background: rgba(240,165,0,.15);  color: var(--amb); }
+.mei-termo-badge.cr  { background: rgba(231,76,60,.15);  color: var(--red); }
+.mei-termo-vals { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.mei-val-box { background: var(--bg3); border-radius: var(--rs); padding: 10px 12px; }
+.mei-val-lbl { font-size: 10px; color: var(--mut); margin-bottom: 3px; }
+.mei-val-num { font-family: 'Courier New', Courier, monospace; font-size: 15px; font-weight: 700; }
+.mei-val-num.grn { color: var(--grn); }
+.mei-val-num.amb { color: var(--amb); }
+.mei-val-num.red { color: var(--red); }
+.mei-pbar-wrap { margin-bottom: 8px; }
+.mei-pbar { height: 10px; background: var(--bg3); border-radius: 99px; overflow: hidden; }
+.mei-pfil { height: 100%; border-radius: 99px; background: var(--grn); transition: width .6s cubic-bezier(.4,0,.2,1); }
+.mei-pfil.wn { background: var(--amb); }
+.mei-pfil.cr { background: var(--red); }
+.mei-pbar-lbs { display: flex; justify-content: space-between; font-size: 11px; color: var(--mut); margin-top: 5px; font-family: 'Courier New', Courier, monospace; }
+.mei-projecao { font-size: 12px; color: var(--mut); margin-top: 10px; line-height: 1.5; padding-top: 10px; border-top: 1px solid var(--brd); }
+.mei-projecao strong { color: var(--txt); }
+
+
   --bg:  #e8e8e4;
   --bg2: #f0efeb;
   --bg3: #e0dfdb;
@@ -606,7 +652,7 @@ canvas { display: block; width: 100% !important; }
   <button class="menu-btn" onclick="abrirDrawer()" title="Menu">
     <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
-  <div class="logo">MINHA<em>ROTA</em><small>v0.8.0-beta</small></div>
+  <div class="logo">MINHA<em>ROTA</em><small>v0.9.0-beta</small></div>
   <div class="hdr-right">
     <div class="pill" id="dpill"></div>
     <div class="usr-pill" id="upill" onclick="abrirM('usr')" title="Trocar usuário">👤 —</div>
@@ -797,6 +843,50 @@ canvas { display: block; width: 100% !important; }
   <div class="sep"></div>
   <div class="seclb">Contas pagas</div>
   <div class="card" style="padding:0 16px" id="lista-pagas"></div>
+
+  <!-- ══ GESTÃO MEI ══ -->
+  <div class="sep"></div>
+  <div class="seclb">Gestão MEI</div>
+  <div class="mei-section">
+
+    <!-- Banner DAS (dias 15-20) -->
+    <div class="mei-das-banner" id="mei-das-banner">
+      <div class="mei-das-icon">📋</div>
+      <div class="mei-das-txt">
+        <strong>⚠️ DAS vence em breve!</strong>
+        <p>O boleto do DAS-MEI vence todo mês até o dia <strong>20</strong>. Acesse o portal para gerar e pagar: <a href="https://www.gov.br/empresas-e-negocios/pt-br/empreendedor" target="_blank" rel="noopener">gov.br/empreendedor</a></p>
+      </div>
+    </div>
+
+    <!-- Termômetro de faturamento -->
+    <div class="mei-termo-card">
+      <div class="mei-termo-top">
+        <div class="mei-termo-title">📊 Faturamento anual MEI</div>
+        <div class="mei-termo-badge ok" id="mei-badge">0%</div>
+      </div>
+      <div class="mei-termo-vals">
+        <div class="mei-val-box">
+          <div class="mei-val-lbl">Faturado em <span id="mei-ano-label">2025</span></div>
+          <div class="mei-val-num grn" id="mei-faturado">R$ 0</div>
+        </div>
+        <div class="mei-val-box">
+          <div class="mei-val-lbl">Margem restante</div>
+          <div class="mei-val-num" id="mei-margem">R$ 81.000</div>
+        </div>
+      </div>
+      <div class="mei-pbar-wrap">
+        <div class="mei-pbar">
+          <div class="mei-pfil" id="mei-pfil" style="width:0%"></div>
+        </div>
+        <div class="mei-pbar-lbs">
+          <span id="mei-pct-lbl">0% do limite</span>
+          <span style="color:var(--mut)">Teto: R$ 81.000</span>
+        </div>
+      </div>
+      <div class="mei-projecao" id="mei-projecao"></div>
+    </div>
+
+  </div>
 </div>
 
 <!-- ══════════ SEMANA ══════════ -->
@@ -1781,7 +1871,7 @@ function irPara(btn) {
   document.querySelectorAll('.nb').forEach(function(b){ b.classList.remove('on'); });
   document.getElementById('pg-'+pg).classList.add('on');
   btn.classList.add('on');
-  if (pg==='contas')   renderContas();
+  if (pg==='contas')   { renderContas(); renderMEI(); }
   if (pg==='caixas')   { renderBgr(); renderCfg(); renderDepList(); }
   if (pg==='semana')   renderSemana();
   if (pg==='graficos') renderGraficos();
@@ -3877,6 +3967,109 @@ function toggleAjudaSection(btn) {
 function abrirAjuda() {
   var el = document.getElementById('m-ajuda');
   if (el) { el.classList.add('on'); renderFAQ(); }
+}
+
+// ── GESTÃO MEI ────────────────────────────────────────────
+var MEI_TETO = 81000;
+
+function renderMEI() {
+  var hoje    = new Date();
+  var dia     = hoje.getDate();
+  var ano     = hoje.getFullYear();
+
+  // ── Banner DAS: exibe entre dias 15 e 20 do mês ──────────
+  var banner = document.getElementById('mei-das-banner');
+  if (banner) {
+    banner.classList.toggle('visivel', dia >= 15 && dia <= 20);
+  }
+
+  // ── Termômetro de faturamento ─────────────────────────────
+  // Soma todos os ganhos BRUTOS do ano atual a partir do histórico
+  var faturado = 0;
+  if (S.hist && S.hist.length) {
+    S.hist.forEach(function(h) {
+      var d = ptDt(h.dt);
+      if (d.getFullYear() === ano) {
+        faturado += (parseFloat(h.b) || 0); // h.b = ganho bruto do dia
+      }
+    });
+  }
+
+  var pct     = Math.min(100, (faturado / MEI_TETO) * 100);
+  var margem  = Math.max(0, MEI_TETO - faturado);
+  var classCor = pct >= 90 ? 'cr' : pct >= 70 ? 'wn' : 'ok';
+  var corFil   = pct >= 90 ? 'cr' : pct >= 70 ? 'wn' : '';
+
+  // badge
+  var badge = document.getElementById('mei-badge');
+  if (badge) {
+    badge.textContent  = Math.round(pct) + '%';
+    badge.className    = 'mei-termo-badge ' + classCor;
+  }
+
+  // ano label
+  var anoEl = document.getElementById('mei-ano-label');
+  if (anoEl) anoEl.textContent = ano;
+
+  // valores
+  var fatEl = document.getElementById('mei-faturado');
+  if (fatEl) {
+    fatEl.textContent = fK(faturado);
+    fatEl.className   = 'mei-val-num ' + (pct >= 90 ? 'red' : pct >= 70 ? 'amb' : 'grn');
+  }
+  var marEl = document.getElementById('mei-margem');
+  if (marEl) {
+    marEl.textContent = fK(margem);
+    marEl.className   = 'mei-val-num ' + (pct >= 90 ? 'red' : pct >= 70 ? 'amb' : 'grn');
+  }
+
+  // barra
+  var pfil = document.getElementById('mei-pfil');
+  if (pfil) {
+    pfil.style.width = pct.toFixed(1) + '%';
+    pfil.className   = 'mei-pfil' + (corFil ? ' ' + corFil : '');
+  }
+  var pctLbl = document.getElementById('mei-pct-lbl');
+  if (pctLbl) pctLbl.textContent = pct.toFixed(1) + '% do limite';
+
+  // projeção
+  var projecaoEl = document.getElementById('mei-projecao');
+  if (projecaoEl) {
+    var diasAno   = Math.ceil((new Date(ano, 11, 31) - new Date(ano, 0, 1)) / 86400000);
+    var diaDoAno  = Math.ceil((hoje - new Date(ano, 0, 1)) / 86400000);
+    var diasRestAno = diasAno - diaDoAno;
+    var mediaGanho  = diaDoAno > 0 ? faturado / diaDoAno : 0;
+    var projecaoTotal = faturado + (mediaGanho * diasRestAno);
+    var html = '';
+
+    if (pct >= 90) {
+      html = '🚨 <strong>Atenção:</strong> Você está próximo do teto MEI. Considere consultar um contador sobre a transição para ME.';
+    } else if (pct >= 70) {
+      html = '⚠️ <strong>Atenção:</strong> Você já usou ' + Math.round(pct) + '% do limite anual.';
+      if (mediaGanho > 0) {
+        html += ' Com a média atual, a projeção para o ano é de <strong>' + fK(projecaoTotal) + '</strong>.';
+        if (projecaoTotal > MEI_TETO) {
+          html += ' ⚠️ Isso <strong>ultrapassa o teto</strong> do MEI.';
+        }
+      }
+    } else {
+      if (faturado === 0) {
+        html = 'Os ganhos brutos de cada dia são somados automaticamente. Registre dias trabalhados para ver o termômetro.';
+      } else {
+        if (mediaGanho > 0) {
+          html = '📈 Com a média atual de <strong>' + fK(mediaGanho) + '/dia</strong>, a projeção anual é <strong>' + fK(projecaoTotal) + '</strong>';
+          if (projecaoTotal <= MEI_TETO) {
+            html += ' — dentro do limite MEI. ✅';
+          } else {
+            html += ' — <strong>acima do teto</strong>. ⚠️';
+          }
+        } else {
+          html = 'Registre mais dias para ver a projeção anual.';
+        }
+      }
+    }
+    projecaoEl.innerHTML = html;
+  }
 }
 
 // ── INIT ──────────────────────────────────────────────────
