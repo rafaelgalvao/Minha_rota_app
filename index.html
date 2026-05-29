@@ -42,13 +42,13 @@
 
 /* ── TEMA CLARO ── */
 body.tema-claro {
-  --bg:  #f5f5f0;
-  --bg2: #ffffff;
-  --bg3: #ececec;
-  --bg4: #e0e0dc;
-  --brd: #d0d0cc;
+  --bg:  #e8e8e4;
+  --bg2: #f0efeb;
+  --bg3: #e0dfdb;
+  --bg4: #d4d3cf;
+  --brd: #c4c3bf;
   --txt: #1a1a1a;
-  --mut: #888;
+  --mut: #777;
   --grn: #18a04a;
   --amb: #c47d00;
   --red: #c0392b;
@@ -460,12 +460,108 @@ canvas { display: block; width: 100% !important; }
 .ouro-rank-item:nth-child(2) { border-color:rgba(180,180,180,.3); }
 .ouro-rank-item:nth-child(3) { border-color:rgba(160,100,40,.3); }
 .hm-tip { position:fixed; background:var(--bg2); border:1px solid var(--brd); border-radius:var(--rs); padding:8px 12px; font-size:12px; color:var(--txt); pointer-events:none; z-index:300; box-shadow:0 4px 20px rgba(0,0,0,.5); display:none; white-space:nowrap; line-height:1.6; }
+
+/* ── DRAWER MENU (Config) ── */
+.menu-btn {
+  width: 36px; height: 36px;
+  border-radius: var(--rs);
+  background: none;
+  border: 1px solid var(--brd);
+  color: var(--mut);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background .15s, color .15s;
+  padding: 0;
+}
+.menu-btn:active { background: var(--bg3); }
+.menu-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Overlay */
+.drawer-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 90;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s;
+}
+.drawer-overlay.on { opacity: 1; pointer-events: all; }
+
+/* Drawer panel */
+.drawer {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: 82vw; max-width: 300px;
+  background: var(--bg2);
+  border-right: 1px solid var(--brd);
+  z-index: 100;
+  transform: translateX(-100%);
+  transition: transform .28s cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+}
+.drawer.on { transform: translateX(0); }
+
+/* Drawer header */
+.drawer-hdr {
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--brd);
+  display: flex; align-items: center; gap: 10px;
+}
+.drawer-hdr-logo {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px; font-weight: 700; color: var(--grn);
+  letter-spacing: -.02em; flex: 1;
+}
+.drawer-hdr-logo em { color: var(--mut); font-style: normal; }
+.drawer-close {
+  width: 30px; height: 30px; border-radius: var(--rs);
+  background: none; border: none; color: var(--mut);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 20px; line-height: 1;
+}
+
+/* Drawer section label */
+.drawer-sec {
+  font-size: 10px; color: var(--mut);
+  text-transform: uppercase; letter-spacing: .09em; font-weight: 600;
+  padding: 14px 16px 6px;
+}
+
+/* Drawer row */
+.drawer-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--brd);
+  transition: background .12s;
+  color: var(--txt);
+  text-decoration: none;
+}
+.drawer-row:last-child { border-bottom: none; }
+.drawer-row:active { background: var(--bg3); }
+.drawer-row-ico {
+  width: 34px; height: 34px; border-radius: var(--rs);
+  display: flex; align-items: center; justify-content: center; font-size: 17px;
+  flex-shrink: 0;
+}
+.drawer-row-txt { flex: 1; }
+.drawer-row-nm { font-size: 14px; font-weight: 600; }
+.drawer-row-sb { font-size: 11px; color: var(--mut); margin-top: 1px; }
+.drawer-row-arr { color: var(--mut); font-size: 18px; flex-shrink: 0; }
+
+/* Drawer tema-grid inside drawer */
+.drawer-tema-wrap { padding: 10px 16px 14px; }
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <header class="hdr">
+  <button class="menu-btn" onclick="abrirDrawer()" title="Menu">
+    <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
   <div class="logo">MINHA<em>ROTA</em><small>v0.8.0-beta</small></div>
   <div class="hdr-right">
     <div class="pill" id="dpill"></div>
@@ -910,10 +1006,6 @@ canvas { display: block; width: 100% !important; }
     <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     Gráficos
   </button>
-  <button class="nb" data-pg="config" onclick="irPara(this)">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    Config
-  </button>
 </nav>
 
 <div class="ver">v0.8.0-beta · UI:0.8 · DB:0.5</div>
@@ -1072,6 +1164,76 @@ canvas { display: block; width: 100% !important; }
     <div class="mact">
       <button class="bcan" onclick="fecharM('backup')">Fechar</button>
       <button class="bsav" onclick="importarDados()" style="background:var(--amb);color:#000">⬆️ Importar</button>
+    </div>
+  </div>
+</div>
+
+<!-- DRAWER OVERLAY -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="fecharDrawer()"></div>
+
+<!-- DRAWER MENU -->
+<div class="drawer" id="drawer-menu">
+  <div class="drawer-hdr">
+    <div class="drawer-hdr-logo">MINHA<em>ROTA</em></div>
+    <button class="drawer-close" onclick="fecharDrawer()">×</button>
+  </div>
+
+  <div class="drawer-sec">Aparência</div>
+  <div style="padding:0 16px 14px">
+    <div class="tema-grid" style="margin:0; padding:0; background:none; border-radius:0">
+      <div class="tema-opt escuro on" id="drawer-tema-escuro" onclick="setTema('escuro')">
+        <div class="tema-opt-prev escuro">🌙</div>
+        <div class="tema-opt-nm">Escuro</div>
+        <div class="tema-opt-sb">Padrão</div>
+      </div>
+      <div class="tema-opt claro" id="drawer-tema-claro" onclick="setTema('claro')">
+        <div class="tema-opt-prev claro">☀️</div>
+        <div class="tema-opt-nm">Claro</div>
+        <div class="tema-opt-sb">Light mode</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-sec">Conta</div>
+  <div style="background:var(--bg2); border-top:1px solid var(--brd); border-bottom:1px solid var(--brd)">
+    <div class="drawer-row" onclick="fecharDrawer();abrirM('usr')">
+      <div class="drawer-row-ico" style="background:rgba(52,152,219,.12)">👤</div>
+      <div class="drawer-row-txt">
+        <div class="drawer-row-nm">Perfis de usuário</div>
+        <div class="drawer-row-sb">Criar, trocar ou remover perfis</div>
+      </div>
+      <div class="drawer-row-arr">›</div>
+    </div>
+    <div class="drawer-row" onclick="fecharDrawer();abrirExportImport()">
+      <div class="drawer-row-ico" style="background:rgba(46,204,113,.12)">📦</div>
+      <div class="drawer-row-txt">
+        <div class="drawer-row-nm">Backup / Restaurar</div>
+        <div class="drawer-row-sb">Exportar ou importar dados JSON</div>
+      </div>
+      <div class="drawer-row-arr">›</div>
+    </div>
+  </div>
+
+  <div class="drawer-sec">Navegação</div>
+  <div style="background:var(--bg2); border-top:1px solid var(--brd); border-bottom:1px solid var(--brd)">
+    <div class="drawer-row" onclick="fecharDrawer();irParaSemana()">
+      <div class="drawer-row-ico" style="background:rgba(155,89,182,.12)">📅</div>
+      <div class="drawer-row-txt">
+        <div class="drawer-row-nm">Semana / Histórico</div>
+        <div class="drawer-row-sb">Resumos e histórico de ganhos</div>
+      </div>
+      <div class="drawer-row-arr">›</div>
+    </div>
+  </div>
+
+  <div class="drawer-sec">Sobre</div>
+  <div style="background:var(--bg2); border-top:1px solid var(--brd); border-bottom:1px solid var(--brd)">
+    <div class="drawer-row" style="cursor:default">
+      <div class="drawer-row-ico" style="background:rgba(46,204,113,.12)">🏍</div>
+      <div class="drawer-row-txt">
+        <div class="drawer-row-nm">MinhaRota</div>
+        <div class="drawer-row-sb">v0.8.0-beta · Controle para entregadores</div>
+      </div>
     </div>
   </div>
 </div>
@@ -3125,14 +3287,19 @@ var _tema = 'escuro';
 function setTema(t) { _tema=t; localStorage.setItem('mr_tema',t); aplicarTema(); renderConfig(); }
 function aplicarTema() {
   document.body.classList.toggle('tema-claro', _tema==='claro');
-  var cor=_tema==='claro'?'#f5f5f0':'#0f0f0f';
+  var cor=_tema==='claro'?'#e8e8e4':'#0f0f0f';
   var mt=document.querySelector('meta[name="theme-color"]'); if(mt) mt.setAttribute('content',cor);
 }
 function carregarTema() { _tema=localStorage.getItem('mr_tema')||'escuro'; aplicarTema(); }
 function renderConfig() {
+  // na página config
   var e=document.getElementById('tema-escuro'); var c=document.getElementById('tema-claro');
   if(e) e.classList.toggle('on',_tema==='escuro');
   if(c) c.classList.toggle('on',_tema==='claro');
+  // no drawer
+  var de=document.getElementById('drawer-tema-escuro'); var dc=document.getElementById('drawer-tema-claro');
+  if(de) de.classList.toggle('on',_tema==='escuro');
+  if(dc) dc.classList.toggle('on',_tema==='claro');
 }
 
 
@@ -3262,6 +3429,18 @@ function registrarSW() {
   var blob = new Blob([swCode], {type:'text/javascript'});
   var url  = URL.createObjectURL(blob);
   navigator.serviceWorker.register(url).catch(function(){});
+}
+
+// ── DRAWER ────────────────────────────────────────────────
+function abrirDrawer() {
+  document.getElementById('drawer-menu').classList.add('on');
+  document.getElementById('drawer-overlay').classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function fecharDrawer() {
+  document.getElementById('drawer-menu').classList.remove('on');
+  document.getElementById('drawer-overlay').classList.remove('on');
+  document.body.style.overflow = '';
 }
 
 // ── INIT ──────────────────────────────────────────────────
