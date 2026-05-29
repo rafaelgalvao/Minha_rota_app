@@ -461,6 +461,50 @@ canvas { display: block; width: 100% !important; }
 .ouro-rank-item:nth-child(3) { border-color:rgba(160,100,40,.3); }
 .hm-tip { position:fixed; background:var(--bg2); border:1px solid var(--brd); border-radius:var(--rs); padding:8px 12px; font-size:12px; color:var(--txt); pointer-events:none; z-index:300; box-shadow:0 4px 20px rgba(0,0,0,.5); display:none; white-space:nowrap; line-height:1.6; }
 
+/* ── DEPÓSITO RESUMO PERÍODO ── */
+.dep-periodo-card { background: var(--bg2); border: 1px solid var(--brd); border-radius: var(--r); padding: 14px 16px; margin-bottom: 10px; }
+.dep-periodo-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.dep-periodo-em { font-size: 22px; }
+.dep-periodo-info { flex: 1; }
+.dep-periodo-nm { font-size: 14px; font-weight: 700; }
+.dep-periodo-sb { font-size: 11px; color: var(--mut); }
+.dep-periodo-val { font-family: 'Courier New', Courier, monospace; font-size: 20px; font-weight: 700; color: var(--grn); text-align: right; }
+.dep-periodo-sub { font-size: 10px; color: var(--mut); text-align: right; }
+.dep-periodo-rows { border-top: 1px solid var(--brd); padding-top: 8px; }
+.dep-periodo-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; font-size: 12px; color: var(--mut); border-bottom: 1px solid var(--brd); }
+.dep-periodo-row:last-child { border-bottom: none; }
+.dep-periodo-row strong { color: var(--txt); font-family: 'Courier New', Courier, monospace; }
+.dep-periodo-total { background: var(--bg3); border: 1px solid var(--brd); border-radius: var(--rs); padding: 12px 14px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.dep-periodo-total-lbl { font-size: 13px; color: var(--mut); }
+.dep-periodo-total-val { font-family: 'Courier New', Courier, monospace; font-size: 18px; font-weight: 700; color: var(--grn); }
+
+/* ── AJUDA / FAQ ── */
+.aj-section { background: var(--bg2); border: 1px solid var(--brd); border-radius: var(--r); margin-bottom: 10px; overflow: hidden; }
+.aj-head { padding: 13px 16px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+.aj-head::after { content: '›'; font-size: 18px; color: var(--mut); transition: transform .2s; }
+.aj-head.open::after { transform: rotate(90deg); }
+.aj-body { display: none; padding: 0 16px 14px; font-size: 13px; color: var(--mut); line-height: 1.7; }
+.aj-body.on { display: block; }
+.aj-body ul { padding-left: 18px; margin: 6px 0; }
+.aj-body li { margin-bottom: 4px; }
+.aj-body p { margin-bottom: 6px; }
+.aj-body strong { color: var(--txt); }
+.aj-tip { background: var(--bg3); border-left: 3px solid var(--grn); border-radius: 0 var(--rs) var(--rs) 0; padding: 8px 10px; font-size: 12px; margin-top: 8px; }
+.faq-item { background: var(--bg2); border: 1px solid var(--brd); border-radius: var(--r); margin-bottom: 8px; overflow: hidden; }
+.faq-q { padding: 13px 16px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; align-items: center; color: var(--txt); user-select: none; gap: 10px; }
+.faq-q::after { content: '+'; font-size: 20px; color: var(--mut); flex-shrink: 0; transition: transform .2s; line-height: 1; }
+.faq-q.open::after { transform: rotate(45deg); }
+.faq-a { display: none; padding: 0 16px 13px; font-size: 13px; color: var(--mut); line-height: 1.65; }
+.faq-a.on { display: block; }
+.faq-a strong { color: var(--txt); }
+.contato-item { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--brd); }
+.contato-item:last-child { border-bottom: none; }
+.contato-ico { font-size: 24px; }
+.contato-nm { font-size: 14px; font-weight: 700; color: var(--txt); }
+.contato-val { font-size: 13px; color: var(--blu); margin-top: 2px; }
+.mov#m-ajuda { align-items: flex-start; overflow-y: auto; }
+.mov#m-ajuda .mod { border-radius: var(--r); margin: 0; width: 100%; min-height: 100vh; }
+
 /* ── DRAWER MENU (Config) ── */
 .menu-btn {
   width: 36px; height: 36px;
@@ -672,9 +716,33 @@ canvas { display: block; width: 100% !important; }
 <!-- ══════════ CAIXINHAS ══════════ -->
 <div id="pg-caixas" class="pg">
 
-  <!-- Cards de depósito diário -->
-  <div class="seclb">Depósito de hoje</div>
-  <div id="dep-list"></div>
+  <!-- Tabs de período -->
+  <div class="tabs" id="dep-tabs">
+    <button class="tab on" data-t="dep-hoje">Hoje</button>
+    <button class="tab" data-t="dep-semana">Semana</button>
+    <button class="tab" data-t="dep-mes">Mês</button>
+    <button class="tab" data-t="dep-ano">Ano</button>
+  </div>
+
+  <div class="tblk on" id="dep-hoje">
+    <div class="seclb">Depósito de hoje</div>
+    <div id="dep-list"></div>
+  </div>
+
+  <div class="tblk" id="dep-semana">
+    <div class="seclb">Esta semana</div>
+    <div id="dep-resumo-semana"></div>
+  </div>
+
+  <div class="tblk" id="dep-mes">
+    <div class="seclb">Este mês</div>
+    <div id="dep-resumo-mes"></div>
+  </div>
+
+  <div class="tblk" id="dep-ano">
+    <div class="seclb">Este ano</div>
+    <div id="dep-resumo-ano"></div>
+  </div>
 
   <div class="sep"></div>
   <div class="seclb">Visão geral</div>
@@ -1226,6 +1294,18 @@ canvas { display: block; width: 100% !important; }
     </div>
   </div>
 
+  <div class="drawer-sec">Suporte</div>
+  <div style="background:var(--bg2); border-top:1px solid var(--brd); border-bottom:1px solid var(--brd)">
+    <div class="drawer-row" onclick="fecharDrawer();abrirAjuda()">
+      <div class="drawer-row-ico" style="background:rgba(52,152,219,.12)">❓</div>
+      <div class="drawer-row-txt">
+        <div class="drawer-row-nm">Ajuda &amp; FAQ</div>
+        <div class="drawer-row-sb">Tutorial, perguntas frequentes e contato</div>
+      </div>
+      <div class="drawer-row-arr">›</div>
+    </div>
+  </div>
+
   <div class="drawer-sec">Sobre</div>
   <div style="background:var(--bg2); border-top:1px solid var(--brd); border-bottom:1px solid var(--brd)">
     <div class="drawer-row" style="cursor:default">
@@ -1235,6 +1315,177 @@ canvas { display: block; width: 100% !important; }
         <div class="drawer-row-sb">v0.8.0-beta · Controle para entregadores</div>
       </div>
     </div>
+  </div>
+</div>
+
+
+<!-- MODAL: AJUDA / FAQ -->
+<div class="mov" id="m-ajuda" style="align-items:flex-start">
+  <div class="mod" style="border-radius:var(--r);margin:0;max-height:100vh;padding-bottom:env(safe-area-inset-bottom,20px)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 style="margin:0;font-size:13px;letter-spacing:.07em">❓ Ajuda &amp; FAQ</h3>
+      <button onclick="fecharM('ajuda')" style="background:none;border:none;font-size:22px;color:var(--mut);cursor:pointer;line-height:1;padding:0 4px">×</button>
+    </div>
+
+    <!-- Tabs internas -->
+    <div class="tabs" id="ajuda-tabs" style="margin-bottom:14px">
+      <button class="tab on" data-t="aj-tutorial">📖 Tutorial</button>
+      <button class="tab" data-t="aj-faq">💬 FAQ</button>
+      <button class="tab" data-t="aj-contato">📩 Contato</button>
+    </div>
+
+    <!-- TUTORIAL -->
+    <div class="tblk on" id="aj-tutorial">
+      <div class="aj-section">
+        <div class="aj-head">🏠 Aba Hoje — Registro do dia</div>
+        <div class="aj-body">
+          <p>Tudo começa aqui. Todo dia que você trabalhar, registre:</p>
+          <ul>
+            <li><strong>Horário de início e término</strong> do turno</li>
+            <li>Se teve <strong>intervalo/pausa</strong>, marque e informe os horários</li>
+            <li>Digite o <strong>ganho bruto</strong> do dia (total que recebeu)</li>
+            <li>Adicione os <strong>custos do dia</strong> (gasolina, lanche, etc.) clicando no <strong>+</strong></li>
+            <li>Veja o <strong>líquido</strong> calculado automaticamente (bruto − custos)</li>
+            <li>Clique em <strong>"Salvar dia"</strong> para registrar e distribuir nas caixinhas</li>
+          </ul>
+          <p class="aj-tip">💡 Você pode registrar datas passadas alterando a data no topo do formulário.</p>
+        </div>
+      </div>
+
+      <div class="aj-section">
+        <div class="aj-head">📦 Aba Caixas — Organização financeira</div>
+        <div class="aj-body">
+          <p>As <strong>caixinhas</strong> são "envelopes virtuais" que dividem seu dinheiro automaticamente:</p>
+          <ul>
+            <li>Cada caixinha recebe uma <strong>porcentagem</strong> do seu líquido diário</li>
+            <li>Após salvar o dia, vá em Caixas e clique <strong>"Confirmar depósito"</strong> em cada uma</li>
+            <li>Acompanhe os depósitos de <strong>hoje, semana, mês e ano</strong> nas abas</li>
+            <li>Defina uma <strong>meta (R$)</strong> para cada caixinha e acompanhe o progresso</li>
+            <li>Você pode <strong>pausar</strong> uma caixinha temporariamente</li>
+            <li>O percentual total deve ser <strong>100%</strong> — o app avisa se estiver errado</li>
+          </ul>
+          <p class="aj-tip">💡 Caixinha pausada não recebe depósito, mas o percentual dela é redistribuído às ativas.</p>
+        </div>
+      </div>
+
+      <div class="aj-section">
+        <div class="aj-head">📄 Aba Contas — Controle de despesas fixas</div>
+        <div class="aj-body">
+          <p>Cadastre suas <strong>contas fixas e parcelamentos</strong> para calcular a meta diária automática:</p>
+          <ul>
+            <li>Adicione contas como: moto, aluguel, seguro, celular, etc.</li>
+            <li>Informe o <strong>valor da parcela</strong> e o <strong>vencimento</strong></li>
+            <li>Para parceladas, marque "É parcelado" e informe as parcelas restantes</li>
+            <li>O app calcula a <strong>meta diária automática</strong> para você cobrir tudo</li>
+            <li>Quando pagar uma conta, clique em <strong>"Pagar"</strong> — ela vai para "Contas pagas"</li>
+          </ul>
+          <p class="aj-tip">💡 A meta diária leva em conta seus <strong>dias de folga</strong> (configurados em Caixas).</p>
+        </div>
+      </div>
+
+      <div class="aj-section">
+        <div class="aj-head">⚠️ Aba Dívidas — Controle de dívidas</div>
+        <div class="aj-body">
+          <p>Para dívidas maiores (empréstimos, cartão, etc.) que não são contas mensais fixas:</p>
+          <ul>
+            <li>Cadastre com o <strong>valor total</strong> e o <strong>valor já pago</strong></li>
+            <li>Para parceladas, informe parcela, total de parcelas e quantas já pagou</li>
+            <li>O app mostra o <strong>saldo restante</strong> e o progresso de quitação</li>
+            <li>Quando quitar, clique em <strong>"Quitar"</strong> — a dívida vai para o histórico</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="aj-section">
+        <div class="aj-head">📊 Aba Extrato — Visão completa</div>
+        <div class="aj-body">
+          <p>Veja <strong>todas as movimentações</strong> (entradas, saídas, gastos) num só lugar:</p>
+          <ul>
+            <li>Use os <strong>atalhos rápidos</strong> (Hoje, Esta semana, Este mês) para filtrar</li>
+            <li>Ou defina um <strong>período personalizado</strong> com datas de início e fim</li>
+            <li>O extrato mostra <strong>saldo, entradas e saídas</strong> do período selecionado</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="aj-section">
+        <div class="aj-head">📈 Aba Gráficos — Analytics</div>
+        <div class="aj-body">
+          <p>Analise sua performance com diferentes visualizações:</p>
+          <ul>
+            <li><strong>Diário:</strong> ganhos dos últimos 14 dias</li>
+            <li><strong>Barras:</strong> comparativo bruto vs líquido por dia</li>
+            <li><strong>Quinzena/Mês:</strong> evolução por período</li>
+            <li><strong>Pizza:</strong> distribuição entre caixinhas</li>
+            <li><strong>Horários de Ouro 🥇:</strong> descubra quais dias e horários você ganha mais por hora</li>
+          </ul>
+          <p class="aj-tip">💡 Horários de Ouro requer ao menos 5 registros com horários preenchidos.</p>
+        </div>
+      </div>
+
+      <div class="aj-section">
+        <div class="aj-head">👤 Perfis de usuário</div>
+        <div class="aj-body">
+          <p>O app suporta <strong>múltiplos perfis</strong> — ideal para quem divide o celular:</p>
+          <ul>
+            <li>Acesse pelo botão com seu nome no canto superior direito</li>
+            <li>Cada perfil tem seus dados <strong>completamente separados</strong></li>
+            <li>Você pode criar, trocar e remover perfis a qualquer momento</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="aj-section">
+        <div class="aj-head">📦 Backup e restauração</div>
+        <div class="aj-body">
+          <p>Para não perder seus dados, faça backup regularmente:</p>
+          <ul>
+            <li>Vá no menu (☰) → <strong>Backup / Restaurar</strong></li>
+            <li>Exporte um arquivo <strong>.json</strong> e guarde em local seguro (Drive, WhatsApp para si mesmo, etc.)</li>
+            <li>Para restaurar, abra o app, vá em Backup e importe o arquivo</li>
+          </ul>
+          <p class="aj-tip">⚠️ Os dados ficam no <strong>navegador/app</strong>. Se limpar o cache, perde tudo. Faça backup frequente!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="tblk" id="aj-faq">
+      <div id="faq-list"></div>
+    </div>
+
+    <!-- CONTATO -->
+    <div class="tblk" id="aj-contato">
+      <div class="aj-section">
+        <div class="aj-head">📩 Entre em contato</div>
+        <div class="aj-body">
+          <p>Tem dúvidas, sugestões ou encontrou algum problema? Fale com a gente:</p>
+          <div class="contato-item">
+            <span class="contato-ico">📧</span>
+            <div>
+              <div class="contato-nm">E-mail</div>
+              <div class="contato-val" style="color:var(--mut);font-style:italic">Em breve</div>
+            </div>
+          </div>
+          <div class="contato-item">
+            <span class="contato-ico">💬</span>
+            <div>
+              <div class="contato-nm">WhatsApp / Suporte</div>
+              <div class="contato-val" style="color:var(--mut);font-style:italic">Em breve</div>
+            </div>
+          </div>
+          <div class="contato-item">
+            <span class="contato-ico">📸</span>
+            <div>
+              <div class="contato-nm">Instagram</div>
+              <div class="contato-val" style="color:var(--mut);font-style:italic">Em breve</div>
+            </div>
+          </div>
+          <p class="aj-tip" style="margin-top:14px">💡 Ao entrar em contato, informe o que estava tentando fazer e qual erro ou dúvida apareceu. Isso agiliza muito o atendimento!</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -3443,6 +3694,191 @@ function fecharDrawer() {
   document.body.style.overflow = '';
 }
 
+
+// ── DEPÓSITOS POR PERÍODO ────────────────────────────────
+function isoParaDate(iso) {
+  // iso = "YYYY-MM-DD"
+  var p = iso.split('-');
+  return new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+}
+
+function startOfWeek(d) {
+  var day = d.getDay(); // 0=Dom
+  var diff = d.getDate() - day;
+  return new Date(d.getFullYear(), d.getMonth(), diff);
+}
+
+function renderDepPeriodo(periodoId) {
+  var el = document.getElementById('dep-resumo-' + periodoId); if (!el) return;
+  if (!S || !S.depositos) { el.innerHTML = '<p class="empty">Nenhum depósito ainda.</p>'; return; }
+
+  var agora = new Date();
+  var anoAt = agora.getFullYear();
+  var mesAt  = agora.getMonth();
+  var swk    = startOfWeek(agora);
+
+  function inPeriodo(dep) {
+    var d = isoParaDate(dep.dt);
+    if (periodoId === 'semana') return d >= swk && d <= agora;
+    if (periodoId === 'mes')    return d.getFullYear()===anoAt && d.getMonth()===mesAt;
+    if (periodoId === 'ano')    return d.getFullYear()===anoAt;
+    return false;
+  }
+
+  var deps = S.depositos.filter(inPeriodo);
+
+  if (!deps.length) {
+    el.innerHTML = '<p class="empty">Nenhum depósito neste período.</p>';
+    return;
+  }
+
+  // Agrupa por caixinha
+  var por_cxa = {};
+  deps.forEach(function(d) {
+    if (!por_cxa[d.cxId]) por_cxa[d.cxId] = { total: 0, dias: [] };
+    por_cxa[d.cxId].total += d.val;
+    if (por_cxa[d.cxId].dias.indexOf(d.dt) < 0) por_cxa[d.cxId].dias.push(d.dt);
+  });
+
+  var totalGeral = deps.reduce(function(a,d){ return a+d.val; }, 0);
+
+  var periodoLabel = {semana:'esta semana', mes:'este mês', ano:'este ano'}[periodoId];
+
+  var html = '<div class="dep-periodo-total">' +
+    '<span class="dep-periodo-total-lbl">Total depositado ' + periodoLabel + '</span>' +
+    '<span class="dep-periodo-total-val">' + fK(totalGeral) + '</span>' +
+    '</div>';
+
+  S.caixas.forEach(function(cx) {
+    var info = por_cxa[cx.id];
+    if (!info) return;
+    var nd = info.dias.length;
+    html += '<div class="dep-periodo-card">' +
+      '<div class="dep-periodo-hdr">' +
+        '<div class="dep-periodo-em">' + cx.em + '</div>' +
+        '<div class="dep-periodo-info">' +
+          '<div class="dep-periodo-nm">' + cx.nm + '</div>' +
+          '<div class="dep-periodo-sb">' + nd + ' depósito' + (nd>1?'s':'') + ' no período</div>' +
+        '</div>' +
+        '<div>' +
+          '<div class="dep-periodo-val">' + fK(info.total) + '</div>' +
+          '<div class="dep-periodo-sub">' + Math.round((info.total/totalGeral)*100) + '% do total</div>' +
+        '</div>' +
+      '</div>' +
+      // mini barra de progresso
+      '<div style="height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-bottom:8px">' +
+        '<div style="height:100%;background:' + (cx.cor||'var(--grn)') + ';width:' + Math.round((info.total/totalGeral)*100) + '%;border-radius:2px"></div>' +
+      '</div>' +
+      // lista de depósitos individuais
+      '<div class="dep-periodo-rows">' +
+      deps.filter(function(d){ return d.cxId===cx.id; })
+          .sort(function(a,b){ return b.dt.localeCompare(a.dt); })
+          .map(function(d) {
+            var dt = isoParaDate(d.dt);
+            var ds = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+            var label = ds[dt.getDay()] + ' ' + dt.toLocaleDateString('pt-BR');
+            return '<div class="dep-periodo-row">' +
+              '<span>' + label + '</span>' +
+              '<strong>' + fK(d.val) + '</strong>' +
+            '</div>';
+          }).join('') +
+      '</div>' +
+    '</div>';
+  });
+
+  el.innerHTML = html;
+}
+
+// ── TABS DE DEPÓSITO ──────────────────────────────────────
+function initDepTabs() {
+  var cont = document.getElementById('dep-tabs'); if (!cont) return;
+  cont.addEventListener('click', function(e) {
+    var btn = e.target.closest('.tab'); if (!btn) return;
+    var t = btn.getAttribute('data-t');
+    cont.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('on'); });
+    btn.classList.add('on');
+    ['dep-hoje','dep-semana','dep-mes','dep-ano'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.toggle('on', id===t);
+    });
+    if (t !== 'dep-hoje') {
+      var per = t.replace('dep-','');
+      renderDepPeriodo(per);
+    }
+  });
+}
+
+// ── AJUDA / FAQ ───────────────────────────────────────────
+var FAQ_DATA = [
+  {
+    q: 'Perdi meus dados, o que faço?',
+    a: 'Os dados ficam salvos no navegador (IndexedDB + localStorage). Se você limpou o cache ou desinstalou o app, os dados podem ter sido perdidos. <strong>Por isso, faça backup regularmente</strong> pelo menu ☰ → Backup/Restaurar → Exportar.'
+  },
+  {
+    q: 'Por que o total alocado nas caixinhas não é 100%?',
+    a: 'Cada caixinha tem um percentual. A soma de todas as ativas deve ser exatamente 100%. O app mostra em vermelho quando está errado. <strong>Ajuste os percentuais</strong> na seção "Gerenciar caixinhas" até totalizar 100%.'
+  },
+  {
+    q: 'Como funciona a meta diária automática?',
+    a: 'O app soma todas as suas contas ativas, divide pelo número de <strong>dias úteis do mês</strong> (excluindo seus dias de folga configurados) e mostra o valor que você precisa ganhar por dia para cobrir tudo.'
+  },
+  {
+    q: 'Posso registrar dias passados?',
+    a: 'Sim! Na aba Hoje, altere a <strong>data no topo</strong> antes de salvar o registro. Você pode registrar qualquer data passada.'
+  },
+  {
+    q: 'O que é "Confirmar depósito"?',
+    a: 'Depois de salvar o dia, o app calcula quanto deveria ir para cada caixinha. <strong>Confirmar depósito</strong> é você confirmar que realmente guardou aquele valor (seja fisicamente ou numa conta). Isso atualiza o saldo guardado da caixinha.'
+  },
+  {
+    q: 'O app funciona sem internet?',
+    a: 'Sim! O MinhaRota é um <strong>PWA (Progressive Web App)</strong>. Após a primeira abertura, funciona 100% offline. Recomendamos instalar pelo botão "Instalar" para melhor experiência.'
+  },
+  {
+    q: 'Como instalar o app no celular?',
+    a: '<strong>Android:</strong> Abra o arquivo no Chrome → menu (⋮) → "Adicionar à tela inicial" ou aguarde o banner de instalação aparecer.<br><br><strong>iPhone:</strong> Abra no Safari → botão compartilhar (□↑) → "Adicionar à Tela de Início".'
+  },
+  {
+    q: 'Posso usar em mais de um celular?',
+    a: 'Atualmente os dados ficam <strong>apenas no dispositivo</strong> onde foi registrado. Para usar em outro celular, exporte o backup no primeiro, transfira o arquivo e importe no segundo. Sincronização automática está planejada para versões futuras.'
+  },
+  {
+    q: 'O que é "Horários de Ouro"?',
+    a: 'É uma análise automática que mostra em quais <strong>dias da semana e horários</strong> você ganha mais por hora trabalhada. Fica na aba Gráficos → Horários de Ouro. Precisa de pelo menos 5 registros com horários preenchidos.'
+  },
+  {
+    q: 'Caixinha pausada perde os dados?',
+    a: 'Não! Pausar uma caixinha apenas <strong>para de receber novos depósitos</strong> temporariamente. O saldo guardado permanece intacto. Você pode retomar quando quiser.'
+  }
+];
+
+function renderFAQ() {
+  var el = document.getElementById('faq-list'); if (!el) return;
+  el.innerHTML = FAQ_DATA.map(function(item, i) {
+    return '<div class="faq-item">' +
+      '<div class="faq-q" onclick="toggleFAQ(this,' + i + ')">' + item.q + '</div>' +
+      '<div class="faq-a" id="faq-a-' + i + '">' + item.a + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function toggleFAQ(btn, i) {
+  var a = document.getElementById('faq-a-' + i);
+  var isOpen = btn.classList.toggle('open');
+  a.classList.toggle('on', isOpen);
+}
+
+function toggleAjudaSection(btn) {
+  var body = btn.nextElementSibling;
+  var isOpen = btn.classList.toggle('open');
+  body.classList.toggle('on', isOpen);
+}
+
+function abrirAjuda() {
+  var el = document.getElementById('m-ajuda');
+  if (el) { el.classList.add('on'); renderFAQ(); }
+}
+
 // ── INIT ──────────────────────────────────────────────────
 function init() {
   setDpill();
@@ -3465,8 +3901,20 @@ function init() {
   initTab('his-tabs',['his-dia','his-sem','his-mes']);
   initTab('sai-tabs',['sai-dia','sai-sem','sai-qui','sai-mes']);
   initTab('gr-tabs', ['gr-dia','gr-bar','gr-qui','gr-mes','gr-pie','gr-ouro']);
+  initTab('ajuda-tabs',['aj-tutorial','aj-faq','aj-contato']);
+  initDepTabs();
 
-  ['m-conta','m-emoji','m-usr','m-backup','m-editdia','m-divida'].forEach(function(id){
+  // Fazer as aj-heads colapsáveis
+  setTimeout(function(){
+    document.querySelectorAll('.aj-head').forEach(function(btn){
+      btn.addEventListener('click', function(){ toggleAjudaSection(this); });
+    });
+    // Abrir o primeiro item por padrão
+    var first = document.querySelector('.aj-head');
+    if (first) { first.classList.add('open'); var b = first.nextElementSibling; if(b) b.classList.add('on'); }
+  }, 100);
+
+  ['m-conta','m-emoji','m-usr','m-backup','m-editdia','m-divida','m-ajuda'].forEach(function(id){
     var el=document.getElementById(id);
     if(el) el.addEventListener('click',function(e){
       if(e.target===this) fecharM(id.replace('m-',''));
