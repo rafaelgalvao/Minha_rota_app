@@ -8,22 +8,23 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MinhaRota">
 <link rel="manifest" id="pwa-manifest">
-<title>MinhaRota v1.0.0-beta</title>
+<title>MinhaRota v1.1.0-beta</title>
 <style>
 /* ═══════════════════════════════════════════
-   MinhaRota · v1.0.0-beta
-   UI: 1.0 | Lógica: 1.0 | DB: 0.6
+   MinhaRota · v1.1.0-beta
+   UI: 1.1 | Lógica: 1.1 | DB: 0.6
    Changelog:
-   [1.0.0-beta] Garagem + Correções
-   - CORRIGIDO: tema claro CSS quebrado (variáveis órfãs)
-   - CORRIGIDO: inputs sobrepostos / layout desalinhado
-   - NOVO: Aba Garagem (manutenção da moto)
-   - Atualização de km do painel
-   - Alertas personalizados por km (troca de óleo, etc)
-   - Cálculo automático de km faltando para cada item
-   - Alerta visual no Dashboard quando < 100km
+   [1.1.0-beta] OCR — Leitura de Print
+   - Botão 📷 ao lado do campo Ganho Bruto
+   - Upload de imagem da galeria do celular
+   - Processamento via Tesseract.js (CDN)
+   - Detecta valores monetários (R$ X,XX)
+   - Preenche automaticamente o maior valor encontrado
+   - Spinner de carregamento durante análise
+   - Lista todos os valores detectados para escolha manual
+   - Interface totalmente em português
+   [1.0.0-beta] Garagem + Correções CSS
    [0.9.0-beta] Drawer + MEI
-   [0.8.0-beta] Horários de Ouro
 ═══════════════════════════════════════════ */
 
 :root {
@@ -688,7 +689,114 @@ canvas { display: block; width: 100% !important; }
 .garage-dash-item strong { font-family: 'Courier New', Courier, monospace; font-size: 12px; }
 .garage-dash-item strong.wn { color: var(--amb); }
 .garage-dash-item strong.cr { color: var(--red); }
+
+/* ══════════════════════════════════════
+   OCR — Leitura de Print
+══════════════════════════════════════ */
+.ocr-btn {
+  flex-shrink: 0;
+  width: 42px; height: 42px;
+  background: rgba(52,152,219,.12);
+  border: 1px solid rgba(52,152,219,.35);
+  border-radius: var(--rs);
+  color: var(--blu);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  transition: all .15s;
+  position: relative;
+}
+.ocr-btn:active { background: rgba(52,152,219,.25); }
+.ocr-btn .ocr-badge {
+  position: absolute; top: -4px; right: -4px;
+  background: var(--amb); color: #000;
+  font-size: 8px; font-weight: 800;
+  padding: 1px 4px; border-radius: 99px;
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: .03em;
+  line-height: 1.4;
+}
+
+/* Campo bruto + botão OCR inline */
+.bruto-row { display: flex; gap: 8px; align-items: flex-end; }
+.bruto-row .f { flex: 1; margin-bottom: 0; }
+
+/* Overlay de loading OCR */
+.ocr-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.88);
+  z-index: 500;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 24px;
+}
+.ocr-overlay.on { display: flex; }
+
+.ocr-spinner {
+  width: 52px; height: 52px;
+  border: 4px solid rgba(52,152,219,.2);
+  border-top-color: var(--blu);
+  border-radius: 50%;
+  animation: ocr-spin .8s linear infinite;
+}
+@keyframes ocr-spin { to { transform: rotate(360deg); } }
+
+.ocr-overlay-txt { text-align: center; }
+.ocr-overlay-txt strong { display: block; font-size: 16px; color: var(--txt); margin-bottom: 6px; }
+.ocr-overlay-txt span { font-size: 13px; color: var(--mut); }
+.ocr-progress {
+  width: 220px; height: 6px;
+  background: var(--bg3);
+  border-radius: 99px; overflow: hidden;
+  margin-top: 6px;
+}
+.ocr-progress-fill {
+  height: 100%;
+  background: var(--blu);
+  border-radius: 99px;
+  transition: width .3s ease;
+  width: 0%;
+}
+
+/* Modal de resultado OCR */
+.ocr-result-list { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 12px; max-height: 260px; overflow-y: auto; }
+.ocr-val-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px;
+  background: var(--bg3);
+  border: 1px solid var(--brd);
+  border-radius: var(--rs);
+  cursor: pointer;
+  transition: all .15s;
+}
+.ocr-val-item:active { background: var(--bg4); }
+.ocr-val-item.destaque {
+  background: rgba(46,204,113,.1);
+  border-color: rgba(46,204,113,.4);
+}
+.ocr-val-icon { font-size: 20px; flex-shrink: 0; }
+.ocr-val-txt { flex: 1; }
+.ocr-val-num { font-family: 'Courier New', Courier, monospace; font-size: 17px; font-weight: 700; color: var(--grn); }
+.ocr-val-item.destaque .ocr-val-num { color: var(--grn); }
+.ocr-val-lbl { font-size: 11px; color: var(--mut); margin-top: 1px; }
+.ocr-val-arr { color: var(--mut); font-size: 18px; flex-shrink: 0; }
+.ocr-nenhum { text-align: center; padding: 20px; color: var(--mut); font-size: 13px; }
+.ocr-nenhum strong { display: block; font-size: 15px; color: var(--txt); margin-bottom: 6px; }
+.ocr-img-preview {
+  width: 100%; max-height: 140px;
+  object-fit: contain;
+  border-radius: var(--rs);
+  border: 1px solid var(--brd);
+  background: var(--bg3);
+  margin-bottom: 12px;
+}
+.ocr-secao { font-size: 11px; color: var(--mut); text-transform: uppercase; letter-spacing: .08em; margin: 10px 0 6px; font-family: 'Courier New', Courier, monospace; }
 </style>
+<!-- Tesseract.js via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 
@@ -697,7 +805,7 @@ canvas { display: block; width: 100% !important; }
   <button class="menu-btn" onclick="abrirDrawer()" title="Menu">
     <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
-  <div class="logo">MINHA<em>ROTA</em><small>v1.0.0-beta</small></div>
+  <div class="logo">MINHA<em>ROTA</em><small>v1.1.0-beta</small></div>
   <div class="hdr-right">
     <div class="pill" id="dpill"></div>
     <div class="usr-pill" id="upill" onclick="abrirM('usr')" title="Trocar usuário">👤 —</div>
@@ -760,7 +868,17 @@ canvas { display: block; width: 100% !important; }
       <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       Valores do dia
     </div>
-    <div class="f"><label>Ganho bruto (R$)</label><input type="number" id="bruto" placeholder="0,00" min="0" step="0.01" oninput="calcDia()"></div>
+    <div class="bruto-row">
+      <div class="f"><label>Ganho bruto (R$)</label><input type="number" id="bruto" placeholder="0,00" min="0" step="0.01" oninput="calcDia()"></div>
+      <div style="padding-bottom:11px">
+        <button class="ocr-btn" onclick="abrirOCR()" title="Ler valor de um print de entrega">
+          📷
+          <span class="ocr-badge">IA</span>
+        </button>
+      </div>
+    </div>
+    <!-- input file oculto para OCR -->
+    <input type="file" id="ocr-file-input" accept="image/*" style="display:none" onchange="processarImagemOCR(this)">
 
     <div style="margin-top:4px">
       <label style="display:block;font-size:13px;color:var(--mut);margin-bottom:6px;font-weight:500">Custos de rua / pessoal</label>
@@ -1240,7 +1358,7 @@ canvas { display: block; width: 100% !important; }
   </button>
 </nav>
 
-<div class="ver">v1.0.0-beta · UI:1.0 · DB:0.6</div>
+<div class="ver">v1.1.0-beta · UI:1.1 · DB:0.6</div>
 
 <!-- MODAL: CONTA -->
 <div class="mov" id="m-conta">
@@ -1484,7 +1602,7 @@ canvas { display: block; width: 100% !important; }
       <div class="drawer-row-ico" style="background:rgba(46,204,113,.12)">🏍</div>
       <div class="drawer-row-txt">
         <div class="drawer-row-nm">MinhaRota</div>
-        <div class="drawer-row-sb">v1.0.0-beta · Controle para entregadores</div>
+        <div class="drawer-row-sb">v1.1.0-beta · Controle para entregadores</div>
       </div>
     </div>
   </div>
@@ -1688,6 +1806,35 @@ canvas { display: block; width: 100% !important; }
     <div class="mact">
       <button class="bcan" onclick="fecharM('garage-item')">Cancelar</button>
       <button class="bsav" onclick="salvarGarageItem()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- OCR: Overlay de carregamento -->
+<div class="ocr-overlay" id="ocr-overlay">
+  <div class="ocr-spinner"></div>
+  <div class="ocr-overlay-txt">
+    <strong id="ocr-status-txt">Analisando imagem...</strong>
+    <span id="ocr-status-sub">Isso pode levar alguns segundos</span>
+    <div class="ocr-progress"><div class="ocr-progress-fill" id="ocr-progress-fill"></div></div>
+  </div>
+</div>
+
+<!-- OCR: Modal de resultados -->
+<div class="mov" id="m-ocr">
+  <div class="mod">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="margin:0">📷 Valores encontrados</h3>
+      <button onclick="fecharM('ocr')" style="background:none;border:none;font-size:22px;color:var(--mut);cursor:pointer;line-height:1;padding:0 4px">×</button>
+    </div>
+
+    <img id="ocr-preview-img" class="ocr-img-preview" style="display:none" alt="Print analisado">
+
+    <div id="ocr-result-content"></div>
+
+    <div class="mact" style="margin-top:8px">
+      <button class="bcan" onclick="fecharM('ocr')">Fechar</button>
+      <button class="bsav" style="background:var(--bg3);color:var(--txt);border:1px solid var(--brd)" onclick="document.getElementById('ocr-file-input').click();fecharM('ocr')">📷 Nova imagem</button>
     </div>
   </div>
 </div>
@@ -4234,7 +4381,7 @@ function init() {
     if (first) { first.classList.add('open'); var b = first.nextElementSibling; if(b) b.classList.add('on'); }
   }, 100);
 
-  ['m-conta','m-emoji','m-usr','m-backup','m-editdia','m-divida','m-ajuda','m-garage-item'].forEach(function(id){
+  ['m-conta','m-emoji','m-usr','m-backup','m-editdia','m-divida','m-ajuda','m-garage-item','m-ocr'].forEach(function(id){
     var el=document.getElementById(id);
     if(el) el.addEventListener('click',function(e){
       if(e.target===this) fecharM(id.replace('m-',''));
@@ -4413,6 +4560,181 @@ function renderGarageDash() {
     }).join('') +
     '</div>' +
   '</div>';
+}
+
+// ══════════════════════════════════════════════════════
+//  OCR — Leitura de Print de Entrega
+// ══════════════════════════════════════════════════════
+
+function abrirOCR() {
+  // dispara o seletor de arquivo/câmera
+  document.getElementById('ocr-file-input').value = '';
+  document.getElementById('ocr-file-input').click();
+}
+
+function mostrarOverlayOCR(status, sub, pct) {
+  var ov = document.getElementById('ocr-overlay');
+  ov.classList.add('on');
+  if (status !== undefined) document.getElementById('ocr-status-txt').textContent = status;
+  if (sub !== undefined) document.getElementById('ocr-status-sub').textContent = sub;
+  if (pct !== undefined) document.getElementById('ocr-progress-fill').style.width = pct + '%';
+}
+
+function esconderOverlayOCR() {
+  document.getElementById('ocr-overlay').classList.remove('on');
+}
+
+function extrairValores(texto) {
+  // Padrões de valor monetário brasileiro
+  // Aceita: R$ 15,50 | R$15.50 | 15,50 | R$ 1.234,56 | R$1234.56
+  var padroes = [
+    /R\$\s*(\d{1,3}(?:\.\d{3})*,\d{2})/g,   // R$ 1.234,56
+    /R\$\s*(\d+,\d{2})/g,                     // R$ 15,50
+    /R\$\s*(\d+\.\d{2})/g,                    // R$ 15.50 (ponto como decimal)
+    /(\d{1,3}(?:\.\d{3})+,\d{2})/g,           // 1.234,56 sem R$
+    /\b(\d{2,4},\d{2})\b/g,                   // 15,50 ou 150,50
+  ];
+
+  var encontrados = {};
+
+  padroes.forEach(function(p) {
+    var m;
+    // reset lastIndex para cada exec
+    p.lastIndex = 0;
+    var texto2 = texto;
+    while ((m = p.exec(texto2)) !== null) {
+      var raw = m[1];
+      // normaliza para float
+      var normalizado = raw
+        .replace(/\./g, '') // remove pontos de milhar
+        .replace(',', '.'); // troca vírgula por ponto
+      var val = parseFloat(normalizado);
+      if (!isNaN(val) && val >= 0.50 && val <= 9999.99) {
+        // chave pelo valor para deduplicar
+        var chave = val.toFixed(2);
+        if (!encontrados[chave]) {
+          encontrados[chave] = { raw: raw, val: val };
+        }
+      }
+    }
+  });
+
+  // converte para array ordenado pelo valor (maior primeiro)
+  return Object.values(encontrados).sort(function(a, b) { return b.val - a.val; });
+}
+
+function renderResultadosOCR(valores, imgUrl) {
+  var content = document.getElementById('ocr-result-content');
+  var prev    = document.getElementById('ocr-preview-img');
+
+  // preview da imagem
+  if (imgUrl) {
+    prev.src = imgUrl;
+    prev.style.display = 'block';
+  } else {
+    prev.style.display = 'none';
+  }
+
+  if (!valores.length) {
+    content.innerHTML =
+      '<div class="ocr-nenhum">' +
+        '<strong>Nenhum valor encontrado 🔍</strong>' +
+        'Não consegui identificar valores monetários nessa imagem.<br>' +
+        'Tente uma imagem com mais contraste ou zoom no total do aplicativo.' +
+      '</div>';
+    return;
+  }
+
+  var html = '<div class="ocr-secao">Toque no valor para preencher o campo:</div>';
+  html += '<div class="ocr-result-list">';
+
+  valores.forEach(function(item, i) {
+    var destaque = i === 0 ? ' destaque' : '';
+    var icon = i === 0 ? '💰' : '📌';
+    var lbl  = i === 0 ? 'Maior valor — provavelmente o total do dia' : 'Valor detectado';
+    var fmtBr = 'R$ ' + item.val.toFixed(2).replace('.', ',');
+
+    html +=
+      '<div class="ocr-val-item' + destaque + '" onclick="selecionarValorOCR(' + item.val + ')">' +
+        '<span class="ocr-val-icon">' + icon + '</span>' +
+        '<div class="ocr-val-txt">' +
+          '<div class="ocr-val-num">' + fmtBr + '</div>' +
+          '<div class="ocr-val-lbl">' + lbl + '</div>' +
+        '</div>' +
+        '<span class="ocr-val-arr">›</span>' +
+      '</div>';
+  });
+
+  html += '</div>';
+  content.innerHTML = html;
+}
+
+function selecionarValorOCR(val) {
+  var campo = document.getElementById('bruto');
+  campo.value = val.toFixed(2);
+  // dispara cálculo
+  calcDia();
+  fecharM('ocr');
+  // feedback visual no campo
+  campo.style.borderColor = 'var(--grn)';
+  setTimeout(function() { campo.style.borderColor = ''; }, 2000);
+  toast('💰 Valor R$ ' + val.toFixed(2).replace('.', ',') + ' preenchido!');
+}
+
+function processarImagemOCR(input) {
+  if (!input.files || !input.files[0]) return;
+
+  var arquivo = input.files[0];
+
+  // verifica tipo
+  if (!arquivo.type.startsWith('image/')) {
+    toast('Selecione uma imagem válida');
+    return;
+  }
+
+  // cria URL para preview
+  var imgUrl = URL.createObjectURL(arquivo);
+
+  // verifica se Tesseract está disponível
+  if (typeof Tesseract === 'undefined') {
+    toast('⚠️ Tesseract não carregou. Verifique sua conexão.');
+    return;
+  }
+
+  mostrarOverlayOCR('Carregando imagem...', 'Preparando análise', 5);
+
+  Tesseract.recognize(
+    arquivo,
+    'por+eng', // português + inglês para melhor detecção de números
+    {
+      logger: function(m) {
+        if (m.status === 'recognizing text') {
+          var pct = Math.round(m.progress * 85) + 10;
+          var fase = pct < 30 ? 'Carregando imagem...' :
+                     pct < 60 ? 'Lendo texto...' :
+                     pct < 80 ? 'Identificando valores...' :
+                                'Finalizando...';
+          mostrarOverlayOCR(fase, 'Aguarde, analisando o print', pct);
+        }
+      }
+    }
+  ).then(function(resultado) {
+    esconderOverlayOCR();
+    var texto = resultado.data.text;
+    var valores = extrairValores(texto);
+
+    // monta e exibe modal de resultados
+    renderResultadosOCR(valores, imgUrl);
+    abrirM('ocr');
+
+    // limpa URL após uso (previne memory leak)
+    setTimeout(function() { URL.revokeObjectURL(imgUrl); }, 30000);
+
+  }).catch(function(erro) {
+    esconderOverlayOCR();
+    console.error('OCR erro:', erro);
+    toast('❌ Erro ao processar imagem. Tente novamente.');
+  });
 }
 
 init();
