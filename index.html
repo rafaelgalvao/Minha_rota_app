@@ -8,22 +8,22 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MinhaRota">
 <link rel="manifest" id="pwa-manifest">
-<title>MinhaRota v1.2.0-beta</title>
+<title>MinhaRota v1.3.0-beta</title>
 <style>
 /* ═══════════════════════════════════════════
-   MinhaRota · v1.2.0-beta
-   UI: 1.2 | Lógica: 1.2 | DB: 0.6
+   MinhaRota · v1.3.0-beta
+   UI: 1.3 | Lógica: 1.3 | DB: 0.6
    Changelog:
+   [1.3.0-beta] Extrato editável + Correções
+   - CORRIGIDO: data do registro usava UTC (mostrava
+     amanhã à noite no Brasil) → usa horário local
+   - CORRIGIDO: caixas desalinhadas no FAB modal
+   - NOVO: Extrato com editar e excluir ganhos
+   - NOVO: Extrato com editar e excluir gastos diários
+   - NOVO: Extrato com excluir contas pagas
+   - Modal de edição inline no extrato
    [1.2.0-beta] Registro Rápido (FAB)
-   - Botão flutuante (FAB) verde, visível em todas as abas
-   - Modal "Adicionar Ganho Rápido" minimalista
-   - Foco automático no teclado numérico
-   - Soma ao ganho bruto do dia e recalcula a meta
-   - Feedback tátil: FAB pulsa ao confirmar
-   - Atalho: teclado → Enter confirma
-   - Contador de adições no FAB badge
    [1.1.0-beta] OCR — Leitura de Print
-   [1.0.0-beta] Garagem + Correções CSS
 ═══════════════════════════════════════════ */
 
 :root {
@@ -795,6 +795,50 @@ canvas { display: block; width: 100% !important; }
 .ocr-secao { font-size: 11px; color: var(--mut); text-transform: uppercase; letter-spacing: .08em; margin: 10px 0 6px; font-family: 'Courier New', Courier, monospace; }
 
 /* ══════════════════════════════════════
+   EXTRATO — Ações de edição/exclusão
+══════════════════════════════════════ */
+.exrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--brd);
+}
+.exrow:last-child { border-bottom: none; }
+.exrow-main { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.exrow-acts { display: flex; gap: 5px; flex-shrink: 0; }
+.exrow-act {
+  width: 28px; height: 28px;
+  border-radius: var(--rs);
+  border: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  transition: background .12s;
+  flex-shrink: 0;
+}
+.exrow-act.edit { background: rgba(52,152,219,.1); color: var(--blu); }
+.exrow-act.del  { background: rgba(231,76,60,.1); color: var(--red); }
+.exrow-act:active { opacity: .7; }
+
+/* Modal edição extrato */
+.ext-edit-field { margin-bottom: 10px; }
+.ext-edit-field label { display: block; font-size: 12px; color: var(--mut); margin-bottom: 4px; }
+.ext-edit-field input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--brd);
+  border-radius: var(--rs);
+  padding: 10px 12px;
+  font-size: 15px;
+  color: var(--txt);
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+}
+.ext-edit-field input:focus { border-color: var(--grn); }
+
+/* ══════════════════════════════════════
    FAB — Registro Rápido
 ══════════════════════════════════════ */
 .fab {
@@ -907,7 +951,8 @@ canvas { display: block; width: 100% !important; }
 }
 
 .mqr-body {
-  padding: 18px 20px 20px;
+  padding: 16px 18px 20px;
+  overflow: hidden;
 }
 
 .mqr-header {
@@ -957,15 +1002,19 @@ canvas { display: block; width: 100% !important; }
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
 }
-.mqr-acum-lbl { font-size: 12px; color: var(--mut); }
-.mqr-acum-val { font-family: 'Courier New', Courier, monospace; font-size: 18px; font-weight: 700; color: var(--grn); }
+.mqr-acum-lbl { font-size: 12px; color: var(--mut); flex-shrink: 0; }
+.mqr-acum-val { font-family: 'Courier New', Courier, monospace; font-size: 18px; font-weight: 700; color: var(--grn); flex-shrink: 0; }
 
 .mqr-input-wrap {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .mqr-prefix {
   font-family: 'Courier New', Courier, monospace;
@@ -973,13 +1022,15 @@ canvas { display: block; width: 100% !important; }
   font-weight: 700;
   color: var(--mut);
   flex-shrink: 0;
+  line-height: 1;
 }
 .mqr-input {
   flex: 1;
+  min-width: 0;
   background: var(--bg3);
   border: 2px solid var(--brd);
   border-radius: var(--r);
-  padding: 14px 16px;
+  padding: 14px 14px;
   font-size: 28px;
   font-family: 'Courier New', Courier, monospace;
   font-weight: 700;
@@ -988,6 +1039,8 @@ canvas { display: block; width: 100% !important; }
   outline: none;
   -webkit-appearance: none;
   transition: border-color .15s;
+  width: 100%;
+  box-sizing: border-box;
 }
 .mqr-input:focus {
   border-color: var(--grn);
@@ -1031,7 +1084,7 @@ canvas { display: block; width: 100% !important; }
   <button class="menu-btn" onclick="abrirDrawer()" title="Menu">
     <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
-  <div class="logo">MINHA<em>ROTA</em><small>v1.2.0-beta</small></div>
+  <div class="logo">MINHA<em>ROTA</em><small>v1.3.0-beta</small></div>
   <div class="hdr-right">
     <div class="pill" id="dpill"></div>
     <div class="usr-pill" id="upill" onclick="abrirM('usr')" title="Trocar usuário">👤 —</div>
@@ -1637,7 +1690,7 @@ canvas { display: block; width: 100% !important; }
   </div>
 </div>
 
-<div class="ver">v1.2.0-beta · UI:1.2 · DB:0.6</div>
+<div class="ver">v1.3.0-beta · UI:1.3 · DB:0.6</div>
 
 <!-- MODAL: CONTA -->
 <div class="mov" id="m-conta">
@@ -2118,6 +2171,32 @@ canvas { display: block; width: 100% !important; }
   </div>
 </div>
 
+<!-- MODAL: EDITAR ENTRADA DO EXTRATO -->
+<div class="mov" id="m-ext-edit">
+  <div class="mod">
+    <h3 id="ext-edit-titulo">Editar registro</h3>
+    <div class="ext-edit-field">
+      <label>Descrição</label>
+      <input type="text" id="ext-edit-nm" placeholder="Nome do registro">
+    </div>
+    <div class="ext-edit-field">
+      <label>Valor (R$)</label>
+      <input type="number" id="ext-edit-val" placeholder="0,00" min="0" step="0.01">
+    </div>
+    <div class="ext-edit-field">
+      <label>Data</label>
+      <input type="date" id="ext-edit-data">
+    </div>
+    <input type="hidden" id="ext-edit-tipo">
+    <input type="hidden" id="ext-edit-idx">
+    <input type="hidden" id="ext-edit-subidx">
+    <div class="mact">
+      <button class="bcan" onclick="fecharM('ext-edit')">Cancelar</button>
+      <button class="bsav" onclick="salvarEdicaoExtrato()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- ════════════════════════ SCRIPT ════════════════════════ -->
@@ -2348,9 +2427,9 @@ function recarregarUI() {
   var mm = document.getElementById('meta-man');
   if (mm) mm.value = S.metaMan || '';
 
-  // data padrão = hoje
+  // data padrão = hoje (usa horário local, não UTC)
   var dataEl = document.getElementById('data-reg');
-  if (dataEl) dataEl.value = new Date().toISOString().split('T')[0];
+  if (dataEl) dataEl.value = localDateStr();
 
   // limpar campos do dia
   ['h-ini','h-fim','ii','if2','bruto'].forEach(function(id) {
@@ -2371,6 +2450,15 @@ function recarregarUI() {
 }
 
 // ── UTIL ──────────────────────────────────────────────────
+// Retorna YYYY-MM-DD no fuso local (evita bug UTC do toISOString)
+function localDateStr(d) {
+  var dt = d || new Date();
+  var y  = dt.getFullYear();
+  var m  = String(dt.getMonth()+1).padStart(2,'0');
+  var dd = String(dt.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+dd;
+}
+
 function fR(v) {
   var n = parseFloat(v)||0;
   return 'R$ '+n.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
@@ -2543,8 +2631,8 @@ function salvarDia() {
   });
   _gastosDia = [];
   renderGastosDia();
-  // reset data para hoje
-  if (dataEl) dataEl.value = new Date().toISOString().split('T')[0];
+  // reset data para hoje (horário local)
+  if (dataEl) dataEl.value = localDateStr();
   document.getElementById('has-int').checked=false;
   document.getElementById('int-wrap').style.display='none';
   document.getElementById('hdsp').textContent='⏱ Horas trabalhadas: —';
@@ -2674,7 +2762,7 @@ function renderBgr() {
 function renderDepList() {
   var el = document.getElementById('dep-list'); if (!el) return;
   var pcts = getPcts();
-  var hoje = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  var hoje = localDateStr(); // YYYY-MM-DD local
 
   // Calcula quanto ganhou hoje (soma do dia atual no hist)
   var hojeStr = new Date().toLocaleDateString('pt-BR');
@@ -2727,7 +2815,7 @@ function renderDepList() {
 
 function confirmarDeposito(cxId, val) {
   var hojeStr = new Date().toLocaleDateString('pt-BR');
-  var isoHoje = new Date().toISOString().split('T')[0];
+  var isoHoje = localDateStr();
   // remove depósito anterior do mesmo dia nessa caixa (toggle)
   var jaExiste = (S.depositos||[]).findIndex(function(d){ return d.cxId===cxId && d.dt===isoHoje; });
   if (jaExiste >= 0) {
@@ -3028,7 +3116,7 @@ function salvarConta() {
 function pagarConta(i) {
   var ct   = S.contas[i];
   var hoje = new Date().toLocaleDateString('pt-BR');
-  var isoH = new Date().toISOString().split('T')[0];
+  var isoH = localDateStr();
 
   // registra no histórico de saídas
   if (!S.pagas) S.pagas = [];
@@ -3566,9 +3654,9 @@ function iniciarExtrato() {
   var fim = document.getElementById('ext-fim');
   if (!fim.value) {
     var hoje = new Date();
-    fim.value = hoje.toISOString().split('T')[0];
+    fim.value = localDateStr(hoje);
     var d15   = new Date(hoje); d15.setDate(hoje.getDate()-14);
-    ini.value = d15.toISOString().split('T')[0];
+    ini.value = localDateStr(d15);
     // marca atalho 15 como ativo
     document.querySelectorAll('.ext-atl').forEach(function(b){ b.classList.remove('on'); });
     document.querySelectorAll('.ext-atl')[1].classList.add('on');
@@ -3579,8 +3667,8 @@ function iniciarExtrato() {
 function extAtalho(dias) {
   var hoje = new Date();
   var ini  = new Date(hoje); ini.setDate(hoje.getDate()-(dias-1));
-  document.getElementById('ext-ini').value = ini.toISOString().split('T')[0];
-  document.getElementById('ext-fim').value = hoje.toISOString().split('T')[0];
+  document.getElementById('ext-ini').value = localDateStr(ini);
+  document.getElementById('ext-fim').value = localDateStr(hoje);
   document.querySelectorAll('.ext-atl').forEach(function(b){ b.classList.remove('on'); });
   event.target.classList.add('on');
   renderExtrato();
@@ -3589,8 +3677,8 @@ function extAtalho(dias) {
 function extAtalhoMes() {
   var hoje = new Date();
   var ini  = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-  document.getElementById('ext-ini').value = ini.toISOString().split('T')[0];
-  document.getElementById('ext-fim').value = hoje.toISOString().split('T')[0];
+  document.getElementById('ext-ini').value = localDateStr(ini);
+  document.getElementById('ext-fim').value = localDateStr(hoje);
   document.querySelectorAll('.ext-atl').forEach(function(b){ b.classList.remove('on'); });
   event.target.classList.add('on');
   renderExtrato();
@@ -3611,7 +3699,7 @@ function renderExtrato() {
   var eventos = [];
 
   // 1. Entradas (hist)
-  S.hist.forEach(function(h) {
+  S.hist.forEach(function(h, hIdx) {
     var d = ptDt(h.dt);
     if (d >= ini && d <= fim) {
       eventos.push({
@@ -3621,18 +3709,21 @@ function renderExtrato() {
         nm: 'Ganho do dia',
         sb: (h.ini&&h.fim ? h.ini+' → '+h.fim : '') + (h.h?' · '+h.h.toFixed(1)+'h':''),
         val: h.lq,
-        gastos: h.gastos||[]
+        gastos: h.gastos||[],
+        histIdx: hIdx
       });
       // gastos do dia como saídas individuais
       if (h.gastos && h.gastos.length) {
-        h.gastos.forEach(function(g){
+        h.gastos.forEach(function(g, gIdx){
           eventos.push({
             tipo: 'gasto',
             data: d,
             dtBr: h.dt,
             nm: g.nm,
             sb: 'Custo do dia',
-            val: g.val
+            val: g.val,
+            histIdx: hIdx,
+            subIdx: gIdx
           });
         });
       } else if (h.c > 0) {
@@ -3643,14 +3734,16 @@ function renderExtrato() {
           dtBr: h.dt,
           nm: 'Custos do dia',
           sb: 'Custo registrado',
-          val: h.c
+          val: h.c,
+          histIdx: hIdx,
+          subIdx: -1
         });
       }
     }
   });
 
   // 2. Saídas (contas pagas)
-  (S.pagas||[]).forEach(function(ct) {
+  (S.pagas||[]).forEach(function(ct, pIdx) {
     var d = new Date(ct.pgIso+'T12:00:00');
     if (d >= ini && d <= fim) {
       eventos.push({
@@ -3659,7 +3752,8 @@ function renderExtrato() {
         dtBr: ct.pgEm,
         nm: ct.nm,
         sb: 'Conta paga',
-        val: ct.val
+        val: ct.val,
+        pagaIdx: pIdx
       });
     }
   });
@@ -3697,22 +3791,43 @@ function renderExtrato() {
     return;
   }
 
-  listaEl.innerHTML = eventos.map(function(ev) {
+  // Lista
+  var listaEl = document.getElementById('ext-lista');
+  if (!eventos.length) {
+    listaEl.innerHTML = '<div class="ext-vazio">Nenhuma movimentação neste período.</div>';
+    return;
+  }
+
+  listaEl.innerHTML = eventos.map(function(ev, evIdx) {
     var ico, icoClass, valClass;
     if (ev.tipo==='entrada') { ico='💰'; icoClass='ent'; valClass='ent'; }
     else if (ev.tipo==='saida') { ico='📋'; icoClass='sai'; valClass='sai'; }
     else { ico='⛽'; icoClass='gst'; valClass='gst'; }
 
     var sinal = ev.tipo==='entrada' ? '+' : '−';
-    return '<div class="exrow">'+
-      '<div class="exrow-ico '+icoClass+'">'+ico+'</div>'+
-      '<div class="exrow-info">'+
-        '<div class="exrow-nm">'+ev.nm+'</div>'+
-        '<div class="exrow-sb">'+ev.dtBr.slice(0,5)+(ev.sb?' · '+ev.sb:'')+'</div>'+
+
+    // botões de ação
+    var podeEditar = (ev.tipo==='entrada' || ev.tipo==='gasto');
+    var editBtn = podeEditar
+      ? '<button class="exrow-act edit" onclick="abrirEdicaoExtrato('+evIdx+')" title="Editar">✏️</button>'
+      : '';
+    var delBtn = '<button class="exrow-act del" onclick="excluirExtrato('+evIdx+')" title="Excluir">🗑</button>';
+
+    return '<div class="exrow" data-ev="'+evIdx+'">'+
+      '<div class="exrow-main">'+
+        '<div class="exrow-ico '+icoClass+'">'+ico+'</div>'+
+        '<div class="exrow-info">'+
+          '<div class="exrow-nm">'+ev.nm+'</div>'+
+          '<div class="exrow-sb">'+ev.dtBr.slice(0,5)+(ev.sb?' · '+ev.sb:'')+'</div>'+
+        '</div>'+
+        '<div class="exrow-val '+valClass+'">'+sinal+' '+fK(ev.val)+'</div>'+
       '</div>'+
-      '<div class="exrow-val '+valClass+'">'+sinal+' '+fK(ev.val)+'</div>'+
+      '<div class="exrow-acts">'+editBtn+delBtn+'</div>'+
     '</div>';
   }).join('');
+
+  // guarda snapshot dos eventos para as ações
+  window._extEventos = eventos;
 }
 
 
@@ -4632,9 +4747,9 @@ function init() {
   registrarSW();
   carregarTema();
 
-  // data padrão
+  // data padrão (horário local, não UTC)
   var dataEl = document.getElementById('data-reg');
-  if (dataEl) dataEl.value = new Date().toISOString().split('T')[0];
+  if (dataEl) dataEl.value = localDateStr();
 
   // inicializar lista de gastos
   renderGastosDia();
@@ -4660,7 +4775,7 @@ function init() {
     if (first) { first.classList.add('open'); var b = first.nextElementSibling; if(b) b.classList.add('on'); }
   }, 100);
 
-  ['m-conta','m-emoji','m-usr','m-backup','m-editdia','m-divida','m-ajuda','m-garage-item','m-ocr'].forEach(function(id){
+  ['m-conta','m-emoji','m-usr','m-backup','m-editdia','m-divida','m-ajuda','m-garage-item','m-ocr','m-ext-edit'].forEach(function(id){
     var el=document.getElementById(id);
     if(el) el.addEventListener('click',function(e){
       if(e.target===this) fecharM(id.replace('m-',''));
@@ -5014,6 +5129,108 @@ function processarImagemOCR(input) {
     console.error('OCR erro:', erro);
     toast('❌ Erro ao processar imagem. Tente novamente.');
   });
+}
+
+// ══════════════════════════════════════════════════════
+//  EXTRATO — Editar e Excluir movimentações
+// ══════════════════════════════════════════════════════
+
+function abrirEdicaoExtrato(evIdx) {
+  var ev = (window._extEventos||[])[evIdx];
+  if (!ev) return;
+
+  document.getElementById('ext-edit-tipo').value   = ev.tipo;
+  document.getElementById('ext-edit-idx').value    = ev.histIdx !== undefined ? ev.histIdx : -1;
+  document.getElementById('ext-edit-subidx').value = ev.subIdx  !== undefined ? ev.subIdx  : -1;
+
+  if (ev.tipo === 'entrada') {
+    document.getElementById('ext-edit-titulo').textContent = '✏️ Editar ganho';
+    document.getElementById('ext-edit-nm').value   = ev.nm;
+    document.getElementById('ext-edit-val').value  = ev.val.toFixed(2);
+    document.getElementById('ext-edit-data').value = localDateStr(ev.data);
+    document.getElementById('ext-edit-nm').disabled   = false;
+  } else if (ev.tipo === 'gasto') {
+    document.getElementById('ext-edit-titulo').textContent = '✏️ Editar custo de rua';
+    document.getElementById('ext-edit-nm').value   = ev.nm;
+    document.getElementById('ext-edit-val').value  = ev.val.toFixed(2);
+    document.getElementById('ext-edit-data').value = localDateStr(ev.data);
+    document.getElementById('ext-edit-nm').disabled   = false;
+  }
+  abrirM('ext-edit');
+}
+
+function salvarEdicaoExtrato() {
+  var tipo   = document.getElementById('ext-edit-tipo').value;
+  var hIdx   = parseInt(document.getElementById('ext-edit-idx').value);
+  var sIdx   = parseInt(document.getElementById('ext-edit-subidx').value);
+  var novoNm = document.getElementById('ext-edit-nm').value.trim();
+  var novoVal= parseFloat(document.getElementById('ext-edit-val').value);
+  var novaData = document.getElementById('ext-edit-data').value;
+
+  if (!novoVal || novoVal <= 0) { toast('Digite um valor válido'); return; }
+
+  if (tipo === 'entrada' && hIdx >= 0) {
+    var h = S.hist[hIdx];
+    if (!h) { toast('Registro não encontrado'); return; }
+    // recalcular lq: bruto - custos
+    var totalGastos = (h.gastos||[]).reduce(function(a,g){return a+g.val;},0);
+    h.b  = novoVal + totalGastos;   // bruto = liquido desejado + custos
+    h.lq = novoVal;
+    if (novaData) {
+      var d = new Date(novaData+'T12:00:00');
+      h.dt  = d.toLocaleDateString('pt-BR');
+    }
+  } else if (tipo === 'gasto' && hIdx >= 0 && sIdx >= 0) {
+    var h = S.hist[hIdx];
+    if (!h || !h.gastos || !h.gastos[sIdx]) { toast('Gasto não encontrado'); return; }
+    h.gastos[sIdx].nm  = novoNm || h.gastos[sIdx].nm;
+    h.gastos[sIdx].val = novoVal;
+    // recalcular lq do dia
+    var totalG = h.gastos.reduce(function(a,g){return a+g.val;},0);
+    h.c  = totalG;
+    h.lq = Math.max(0, h.b - totalG);
+  }
+
+  salvar();
+  fecharM('ext-edit');
+  renderExtrato();
+  toast('Registro atualizado ✓');
+}
+
+function excluirExtrato(evIdx) {
+  var ev = (window._extEventos||[])[evIdx];
+  if (!ev) return;
+
+  var confirmMsg = {
+    entrada: 'Excluir este ganho de ' + fK(ev.val) + '?',
+    gasto:   'Excluir este custo "' + ev.nm + '" de ' + fK(ev.val) + '?',
+    saida:   'Excluir este registro de conta paga "' + ev.nm + '"?'
+  }[ev.tipo] || 'Excluir este registro?';
+
+  if (!confirm(confirmMsg)) return;
+
+  if (ev.tipo === 'entrada' && ev.histIdx !== undefined) {
+    S.hist.splice(ev.histIdx, 1);
+    salvar();
+    renderExtrato();
+    toast('Ganho excluído');
+  } else if (ev.tipo === 'gasto' && ev.histIdx !== undefined && ev.subIdx !== undefined) {
+    var h = S.hist[ev.histIdx];
+    if (h && h.gastos) {
+      h.gastos.splice(ev.subIdx, 1);
+      var totalG = h.gastos.reduce(function(a,g){return a+g.val;},0);
+      h.c  = totalG;
+      h.lq = Math.max(0, h.b - totalG);
+      salvar();
+      renderExtrato();
+      toast('Custo excluído');
+    }
+  } else if (ev.tipo === 'saida' && ev.pagaIdx !== undefined) {
+    S.pagas.splice(ev.pagaIdx, 1);
+    salvar();
+    renderExtrato();
+    toast('Registro de conta excluído');
+  }
 }
 
 // ══════════════════════════════════════════════════════
