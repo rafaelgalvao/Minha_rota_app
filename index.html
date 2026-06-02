@@ -8,22 +8,20 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MinhaRota">
 <link rel="manifest" id="pwa-manifest">
-<title>MinhaRota v1.3.0-beta</title>
+<title>MinhaRota v1.4.2-beta</title>
 <style>
 /* ═══════════════════════════════════════════
-   MinhaRota · v1.3.0-beta
-   UI: 1.3 | Lógica: 1.3 | DB: 0.6
+   MinhaRota · v1.4.2-beta
+   UI: 1.4 | Lógica: 1.4 | DB: 0.7
    Changelog:
-   [1.3.0-beta] Extrato editável + Correções
-   - CORRIGIDO: data do registro usava UTC (mostrava
-     amanhã à noite no Brasil) → usa horário local
-   - CORRIGIDO: caixas desalinhadas no FAB modal
-   - NOVO: Extrato com editar e excluir ganhos
-   - NOVO: Extrato com editar e excluir gastos diários
-   - NOVO: Extrato com excluir contas pagas
-   - Modal de edição inline no extrato
-   [1.2.0-beta] Registro Rápido (FAB)
-   [1.1.0-beta] OCR — Leitura de Print
+   [1.4.2-beta] Correção crítica — Illegal return
+   - CORRIGIDO: fragmento órfão de 2 linhas após
+     fechar picoTooltip() ficava no escopo global:
+       var el = document.getElementById('ouro-content');
+       if (!el) return;  ← SyntaxError: Illegal return
+     Esse resquício impedia o app de inicializar.
+   [1.4.1-beta] Correções de brace imbalance
+   [1.4.0-beta] Picos de Demanda — Análise Precisa
 ═══════════════════════════════════════════ */
 
 :root {
@@ -1073,6 +1071,50 @@ canvas { display: block; width: 100% !important; }
   color: var(--mut);
   margin-top: 10px;
 }
+
+/* ══════════════════════════════════════
+   PICOS DE DEMANDA — CSS v1.4
+══════════════════════════════════════ */
+.ouro-toggle { display:flex; gap:4px; background:var(--bg3); padding:4px; border-radius:var(--rs); margin-bottom:14px; }
+.ouro-tog-btn { flex:1; padding:7px 8px; border:none; border-radius:6px; background:transparent; font-size:12px; font-weight:600; cursor:pointer; color:var(--mut); font-family:inherit; transition:all .15s; white-space:nowrap; }
+.ouro-tog-btn.on { background:var(--bg2); color:var(--txt); border:1px solid var(--brd); }
+
+.pico-grid-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; }
+.pico-grid { display:grid; grid-template-columns:36px repeat(7,1fr); gap:3px; min-width:320px; }
+.pico-col-hdr { font-size:10px; font-weight:700; text-align:center; color:var(--mut); padding:2px 0 6px; font-family:'Courier New',Courier,monospace; }
+.pico-row-lbl { font-size:10px; color:var(--mut); display:flex; align-items:center; justify-content:flex-end; padding-right:4px; font-family:'Courier New',Courier,monospace; line-height:1; }
+.pico-cell { height:30px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; font-family:'Courier New',Courier,monospace; cursor:pointer; position:relative; transition:transform .1s; background:var(--bg3); color:transparent; }
+.pico-cell:active { transform:scale(.9); }
+.pico-cell.tem-dado { color:rgba(0,0,0,.75); }
+.pico-cell.pico { box-shadow:0 0 0 2px rgba(255,255,255,.3); z-index:2; }
+.pico-cell.pico::after { content:'★'; position:absolute; top:-5px; right:-2px; font-size:9px; color:#fff; text-shadow:0 0 4px rgba(0,0,0,.8); }
+
+.pico-escala { display:flex; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap; }
+.pico-escala-bar { height:7px; flex:1; max-width:160px; border-radius:4px; }
+.pico-escala-lbl { font-size:10px; color:var(--mut); white-space:nowrap; }
+
+.pico-cards { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.pico-card { background:var(--bg2); border:1px solid var(--brd); border-radius:var(--r); padding:12px; text-align:center; }
+.pico-card.gold  { border-color:rgba(240,165,0,.4);  background:rgba(240,165,0,.06); }
+.pico-card.green { border-color:rgba(46,204,113,.4); background:rgba(46,204,113,.06); }
+.pico-card.blue  { border-color:rgba(52,152,219,.4); background:rgba(52,152,219,.06); }
+.pico-card.pur   { border-color:rgba(155,89,182,.4); background:rgba(155,89,182,.06); }
+.pico-card-ico { font-size:22px; margin-bottom:4px; }
+.pico-card-lbl { font-size:10px; color:var(--mut); text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px; }
+.pico-card-val { font-family:'Courier New',Courier,monospace; font-size:16px; font-weight:700; color:var(--txt); }
+.pico-card-sub { font-size:10px; color:var(--mut); margin-top:2px; }
+
+.pico-rank { display:flex; flex-direction:column; gap:7px; }
+.pico-rank-item { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg3); border:1px solid var(--brd); border-radius:var(--rs); }
+.pico-rank-pos { font-size:20px; flex-shrink:0; }
+.pico-rank-info { flex:1; min-width:0; }
+.pico-rank-nm { font-size:13px; font-weight:700; color:var(--txt); }
+.pico-rank-sb { font-size:11px; color:var(--mut); margin-top:1px; }
+.pico-rank-val { font-family:'Courier New',Courier,monospace; font-size:14px; font-weight:700; color:var(--grn); flex-shrink:0; text-align:right; }
+
+.pico-tip { position:fixed; background:var(--bg2); border:1px solid var(--brd); border-radius:var(--rs); padding:8px 12px; font-size:12px; color:var(--txt); z-index:300; pointer-events:none; box-shadow:0 4px 20px rgba(0,0,0,.5); display:none; white-space:nowrap; line-height:1.7; }
+.ouro-vazio { text-align:center; padding:24px 16px; color:var(--mut); font-size:13px; line-height:1.7; }
+.ouro-vazio strong { display:block; font-size:15px; color:var(--txt); margin-bottom:8px; }
 </style>
 <!-- Tesseract.js via CDN -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -1084,7 +1126,7 @@ canvas { display: block; width: 100% !important; }
   <button class="menu-btn" onclick="abrirDrawer()" title="Menu">
     <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
-  <div class="logo">MINHA<em>ROTA</em><small>v1.3.0-beta</small></div>
+  <div class="logo">MINHA<em>ROTA</em><small>v1.4.2-beta</small></div>
   <div class="hdr-right">
     <div class="pill" id="dpill"></div>
     <div class="usr-pill" id="upill" onclick="abrirM('usr')" title="Trocar usuário">👤 —</div>
@@ -1458,6 +1500,8 @@ canvas { display: block; width: 100% !important; }
 
 <!-- Tooltip flutuante do heatmap -->
 <div class="hm-tip" id="hm-tip"></div>
+<!-- Tooltip picos de demanda -->
+<div class="pico-tip" id="pico-tip"></div>
 <!-- ══════════ EXTRATO ══════════ -->
 <div id="pg-extrato" class="pg">
 
@@ -1690,7 +1734,7 @@ canvas { display: block; width: 100% !important; }
   </div>
 </div>
 
-<div class="ver">v1.3.0-beta · UI:1.3 · DB:0.6</div>
+<div class="ver">v1.4.2-beta · UI:1.4 · DB:0.7</div>
 
 <!-- MODAL: CONTA -->
 <div class="mov" id="m-conta">
@@ -2321,6 +2365,7 @@ function novoEstado() {
     folgas:[0,3],
     contas:[], hist:[], pagas:[], depositos:[],
     dividas:[],
+    corridas: [],          // [{val, ts, dia, hora}] — registro rápido com timestamp
     garagem: { km: 0, itens: [] },
     caixas: JSON.parse(JSON.stringify(CAIXAS_PAD)),
     nid:5
@@ -2348,6 +2393,7 @@ function carregarUsr(uid) {
     if (!Array.isArray(S.hist))      S.hist      = [];
     if (!Array.isArray(S.pagas))     S.pagas     = [];
     if (!Array.isArray(S.depositos)) S.depositos = [];
+    if (!Array.isArray(S.corridas))  S.corridas  = [];
     if (!S.nid)                      S.nid       = 5;
     if (!S.garagem)                  S.garagem   = { km: 0, itens: [] };
     if (!Array.isArray(S.garagem.itens)) S.garagem.itens = [];
@@ -3791,13 +3837,6 @@ function renderExtrato() {
     return;
   }
 
-  // Lista
-  var listaEl = document.getElementById('ext-lista');
-  if (!eventos.length) {
-    listaEl.innerHTML = '<div class="ext-vazio">Nenhuma movimentação neste período.</div>';
-    return;
-  }
-
   listaEl.innerHTML = eventos.map(function(ev, evIdx) {
     var ico, icoClass, valClass;
     if (ev.tipo==='entrada') { ico='💰'; icoClass='ent'; valClass='ent'; }
@@ -3831,215 +3870,348 @@ function renderExtrato() {
 }
 
 
-// ── HORÁRIOS DE OURO ─────────────────────────────────────
+// ── HORÁRIOS DE OURO / PICOS DE DEMANDA ─────────────────
+// Métrica ativa: 'reais' | 'qtd'
+var _ouroMetrica = 'reais';
+
 function renderHorariosDeOuro() {
   var el = document.getElementById('ouro-content');
   if (!el) return;
 
-  // Faixas horárias de 2h: 0-2, 2-4, ..., 22-24
-  var FAIXAS  = [0,2,4,6,8,10,12,14,16,18,20,22];
-  var FAIXA_LBL = FAIXAS.map(function(h){ return h+'h'; });
-  var DIAS    = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var DIAS     = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  var DIAS_EXT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 
-  // Estrutura: matriz[dia_semana 0-6][faixa 0-11] = {sum_rph, count}
-  var mat = [];
-  for (var d=0;d<7;d++) { mat[d]=[]; for(var f=0;f<12;f++) mat[d][f]={sum:0,cnt:0}; }
-
-  // Função: converte "HH:MM" em minutos
-  function hhmm2min(s) {
-    if (!s) return null;
-    var p=s.split(':'); if(p.length<2) return null;
-    return parseInt(p[0])*60+parseInt(p[1]);
+  // ── Construir dataset de corridas por hora ──
+  // Fonte primária: S.corridas (FAB timestamps) — dados cirúrgicos
+  // Fonte fallback: S.hist com horário ini/fim — divide o valor por hora proporcional
+  // grade[dia 0-6][hora 0-23] = {totalR$, qtd}
+  var grade = [];
+  for (var d = 0; d < 7; d++) {
+    grade[d] = [];
+    for (var h = 0; h < 24; h++) grade[d][h] = { r: 0, q: 0 };
   }
+  var totalCorridas = 0;
 
-  // Percorrer histórico
-  var registrosValidos = 0;
-  S.hist.forEach(function(h) {
-    if (!h.ini || !h.fim || !h.lq || h.lq <= 0) return;
-    var iniMin = hhmm2min(h.ini);
-    var fimMin = hhmm2min(h.fim);
-    if (iniMin === null || fimMin === null) return;
-    var totalMin = fimMin > iniMin ? fimMin - iniMin : fimMin + 1440 - iniMin;
-    if (totalMin <= 0) return;
-    var rph = h.lq / (totalMin / 60); // R$ por hora total do dia
-
-    // data → dia da semana
-    var dt = ptDt(h.dt);
-    var diaSem = dt.getDay(); // 0=Dom
-
-    // Para cada faixa de 2h, calcular quanto do expediente cobre
-    FAIXAS.forEach(function(fIni, fi) {
-      var fFim = fIni + 2; // ex: 18 → 20
-      var fIniMin = fIni * 60;
-      var fFimMin = fFim * 60;
-
-      // sobreposição simples: horas que batem com essa faixa
-      // (tratando wraparound de meia-noite simplificado: splitamos em dois intervalos se necessário)
-      function overlap(aIni, aFim, bIni, bFim) {
-        var start = Math.max(aIni, bIni);
-        var end   = Math.min(aFim, bFim);
-        return Math.max(0, end - start);
-      }
-
-      var mins;
-      if (fimMin > iniMin) {
-        mins = overlap(iniMin, fimMin, fIniMin, fFimMin);
-      } else {
-        // virou meia-noite
-        mins = overlap(iniMin, 1440, fIniMin, fFimMin) +
-               overlap(0, fimMin, fIniMin, fFimMin);
-      }
-
-      if (mins >= 15) { // ao menos 15min nessa faixa
-        mat[diaSem][fi].sum += rph;
-        mat[diaSem][fi].cnt += 1;
-        registrosValidos++;
-      }
-    });
+  // — Corridas do FAB com timestamp preciso —
+  (S.corridas || []).forEach(function(c) {
+    if (c.dia === undefined || c.hora === undefined || !c.val) return;
+    grade[c.dia][c.hora].r += c.val;
+    grade[c.dia][c.hora].q += 1;
+    totalCorridas++;
   });
 
-  // Sem dados suficientes
-  var totalRegistros = S.hist.filter(function(h){ return h.ini && h.fim && h.lq > 0; }).length;
-  if (totalRegistros < 3) {
+  // — Fallback: hist com horários de início/fim —
+  // Distribui o valor líquido proporcionalmente por hora
+  S.hist.forEach(function(h) {
+    if (!h.ini || !h.fim || !h.lq || h.lq <= 0) return;
+    var dt     = ptDt(h.dt);
+    var diaSem = dt.getDay();
+    var iniP   = h.ini.split(':');
+    var fimP   = h.fim.split(':');
+    var iniMin = parseInt(iniP[0]) * 60 + parseInt(iniP[1]);
+    var fimMin = parseInt(fimP[0]) * 60 + parseInt(fimP[1]);
+    var totMin = fimMin > iniMin ? fimMin - iniMin : fimMin + 1440 - iniMin;
+    if (totMin <= 0) return;
+
+    // percorrer hora a hora
+    for (var hr = 0; hr < 24; hr++) {
+      var hrIni = hr * 60;
+      var hrFim = hrIni + 60;
+      // overlap com período trabalhado
+      var sobrMin;
+      if (fimMin > iniMin) {
+        sobrMin = Math.max(0, Math.min(hrFim, fimMin) - Math.max(hrIni, iniMin));
+      } else {
+        // virou meia-noite
+        sobrMin = Math.max(0, Math.min(hrFim, 1440) - Math.max(hrIni, iniMin)) +
+                  Math.max(0, Math.min(hrFim, fimMin) - Math.max(hrIni, 0));
+      }
+      if (sobrMin >= 10) {
+        var propR = (sobrMin / totMin) * h.lq;
+        grade[diaSem][hr].r += propR;
+        // não soma qtd no fallback (marcamos com 0 para distinguir)
+      }
+    }
+  });
+
+  // Verificar se há dados suficientes
+  var temCorridas = totalCorridas > 0;
+  var temHist = S.hist.filter(function(h) { return h.ini && h.fim && h.lq > 0; }).length >= 3;
+
+  if (!temCorridas && !temHist) {
     el.innerHTML =
-      '<div class="card"><div class="ouro-vazio">'+
-        '<strong>⭐ Horários de Ouro</strong>'+
-        'Registre ao menos 3 dias completos<br>(com horário de início, fim e ganho)<br>para ativar esta análise.'+
-        '<br><br><span style="font-size:11px;color:var(--mut)">Quanto mais dias registrados, mais preciso!</span>'+
+      '<div class="card"><div class="ouro-vazio">' +
+        '<strong>⭐ Picos de Demanda</strong>' +
+        'Use o botão <strong>+ GANHO</strong> para registrar corridas com horário preciso.<br>' +
+        'Ou registre ao menos 3 dias com horários de início e fim.<br>' +
+        '<br><span style="font-size:11px;color:var(--mut)">Quanto mais corridas, mais preciso o mapa!</span>' +
       '</div></div>';
     return;
   }
 
-  // Calcular médias e encontrar máximo global
-  var mediasMat = [];
-  var todasMedias = [];
-  for (var d=0;d<7;d++) {
-    mediasMat[d]=[];
-    for (var f=0;f<12;f++) {
-      var c = mat[d][f];
-      var med = c.cnt > 0 ? c.sum / c.cnt : 0;
-      mediasMat[d][f] = {med: med, cnt: c.cnt};
-      if (med > 0) todasMedias.push({dia:d, faixa:f, med:med, cnt:c.cnt});
+  var metrica = _ouroMetrica; // 'reais' | 'qtd'
+
+  // ── Calcular máximos ──
+  var maxR = 0, maxQ = 0, totalR = 0, totalQ = 0;
+  for (var d = 0; d < 7; d++) {
+    for (var h = 0; h < 24; h++) {
+      maxR = Math.max(maxR, grade[d][h].r);
+      maxQ = Math.max(maxQ, grade[d][h].q);
+      totalR += grade[d][h].r;
+      totalQ += grade[d][h].q;
     }
   }
-  var maxMed = todasMedias.reduce(function(mx,x){ return x.med > mx ? x.med : mx; }, 0.01);
+  if (maxR < 0.01) maxR = 0.01;
+  if (maxQ < 1)    maxQ = 1;
 
-  // Ordenar para ranking
-  var ranking = todasMedias.slice().sort(function(a,b){ return b.med-a.med; }).slice(0,3);
+  // Limite de pico: células no top 10%
+  var limPicoR = maxR * 0.70;
+  var limPicoQ = maxQ * 0.70;
 
-  // Melhor dia e melhor faixa geral
-  var porDia = [];
-  for (var d=0;d<7;d++) {
-    var soma=0, cnt2=0;
-    for (var f=0;f<12;f++) { if(mediasMat[d][f].cnt>0){ soma+=mediasMat[d][f].med; cnt2++; }}
-    porDia[d] = cnt2>0 ? soma/cnt2 : 0;
+  // ── Filtrar horas com dados (só exibir horas que têm atividade) ──
+  var horasAtivas = [];
+  for (var h = 0; h < 24; h++) {
+    var temAlgo = false;
+    for (var d = 0; d < 7; d++) {
+      if (grade[d][h].r > 0.5 || grade[d][h].q > 0) { temAlgo = true; break; }
+    }
+    if (temAlgo) horasAtivas.push(h);
   }
-  var melhorDiaIdx = porDia.indexOf(Math.max.apply(null, porDia));
-
-  var porFaixa = [];
-  for (var f=0;f<12;f++) {
-    var soma=0, cnt2=0;
-    for (var d=0;d<7;d++) { if(mediasMat[d][f].cnt>0){ soma+=mediasMat[d][f].med; cnt2++; }}
-    porFaixa[f] = cnt2>0 ? soma/cnt2 : 0;
+  if (!horasAtivas.length) {
+    // sem dados suficientes
+    for (var h = 6; h <= 22; h++) horasAtivas.push(h);
   }
-  var melhorFaixaIdx = porFaixa.indexOf(Math.max.apply(null, porFaixa));
 
-  // Cores do heatmap: interpolação entre bg4 e âmbar/ouro
-  function heatColor(val, max) {
-    if (val <= 0) return null;
+  // ── Métricas de destaque ──
+  var melhoresBlocos = [];
+  for (var d = 0; d < 7; d++) {
+    for (var h = 0; h < 24; h++) {
+      if (grade[d][h].r > 0.5 || grade[d][h].q > 0) {
+        melhoresBlocos.push({ dia: d, hora: h, r: grade[d][h].r, q: grade[d][h].q });
+      }
+    }
+  }
+  var rankR = melhoresBlocos.slice().sort(function(a,b){ return b.r-a.r; });
+  var rankQ = melhoresBlocos.slice().sort(function(a,b){ return b.q-a.q; });
+
+  // Melhor dia e hora por R$
+  var porDiaR = Array(7).fill(0);
+  var porHoraR = Array(24).fill(0);
+  var porDiaQ  = Array(7).fill(0);
+  var porHoraQ = Array(24).fill(0);
+  for (var d = 0; d < 7; d++) {
+    for (var h = 0; h < 24; h++) {
+      porDiaR[d]  += grade[d][h].r;
+      porHoraR[h] += grade[d][h].r;
+      porDiaQ[d]  += grade[d][h].q;
+      porHoraQ[h] += grade[d][h].q;
+    }
+  }
+  var melhorDiaR  = porDiaR.indexOf(Math.max.apply(null, porDiaR));
+  var melhorHoraR = porHoraR.indexOf(Math.max.apply(null, porHoraR));
+  var melhorDiaQ  = porDiaQ.indexOf(Math.max.apply(null, porDiaQ));
+  var melhorHoraQ = porHoraQ.indexOf(Math.max.apply(null, porHoraQ));
+
+  // ── Cor do heatmap ──
+  function heatClr(val, max) {
+    if (val <= 0.01) return null;
     var t = Math.min(1, val / max);
-    // de azul-esverdeado fraco → verde → âmbar → laranja
     var r, g, b;
-    if (t < 0.33) {
-      var u = t / 0.33;
-      r = Math.round(30  + u * (46  - 30));
-      g = Math.round(100 + u * (204 - 100));
-      b = Math.round(80  + u * (113 - 80));
-    } else if (t < 0.66) {
-      var u = (t - 0.33) / 0.33;
-      r = Math.round(46  + u * (240 - 46));
-      g = Math.round(204 + u * (165 - 204));
-      b = Math.round(113 + u * (0   - 113));
+    if (t < 0.25) {
+      var u = t / 0.25;
+      r = Math.round(20  + u*(30 -20));  g = Math.round(80 + u*(160-80));  b = Math.round(60+u*(80-60));
+    } else if (t < 0.55) {
+      var u = (t-0.25)/0.30;
+      r = Math.round(30  + u*(46 -30));  g = Math.round(160+ u*(204-160)); b = Math.round(80+u*(113-80));
+    } else if (t < 0.80) {
+      var u = (t-0.55)/0.25;
+      r = Math.round(46  + u*(240-46));  g = Math.round(204+ u*(165-204)); b = Math.round(113+u*(0-113));
     } else {
-      var u = (t - 0.66) / 0.34;
-      r = Math.round(240 + u * (231 - 240));
-      g = Math.round(165 + u * (76  - 165));
-      b = Math.round(0   + u * (60  - 0));
+      var u = (t-0.80)/0.20;
+      r = Math.round(240 + u*(231-240)); g = Math.round(165+ u*(76-165));  b = Math.round(0  +u*(60-0));
     }
     return 'rgb('+r+','+g+','+b+')';
   }
 
-  // ── Destaques ──
-  var destHtml =
-    '<div class="ouro-destaques">'+
-      '<div class="ouro-dest gold">'+
-        '<div class="ouro-dest-ico">🏆</div>'+
-        '<div class="ouro-dest-lbl">Melhor dia</div>'+
-        '<div class="ouro-dest-val">'+DIAS[melhorDiaIdx]+'</div>'+
-        '<div class="ouro-dest-sub">avg '+fK(porDia[melhorDiaIdx])+'/h</div>'+
-      '</div>'+
-      '<div class="ouro-dest green">'+
-        '<div class="ouro-dest-ico">⏰</div>'+
-        '<div class="ouro-dest-lbl">Melhor faixa</div>'+
-        '<div class="ouro-dest-val">'+FAIXAS[melhorFaixaIdx]+'h–'+(FAIXAS[melhorFaixaIdx]+2)+'h</div>'+
-        '<div class="ouro-dest-sub">avg '+fK(porFaixa[melhorFaixaIdx])+'/h</div>'+
-      '</div>'+
+  function txtClr(cor) {
+    if (!cor) return 'var(--mut)';
+    // extrai luminância aproximada
+    var m = cor.match(/rgb\((\d+),(\d+),(\d+)\)/);
+    if (!m) return 'var(--mut)';
+    var lum = 0.299*m[1] + 0.587*m[2] + 0.114*m[3];
+    return lum > 128 ? 'rgba(0,0,0,.8)' : 'rgba(255,255,255,.9)';
+  }
+
+  // ── HTML dos destaques ──
+  var tickerR = temCorridas ? totalCorridas + ' corridas' : totalR > 0 ? 'histórico estimado' : '';
+
+  var cardsHtml =
+    '<div class="pico-cards">' +
+      '<div class="pico-card gold">' +
+        '<div class="pico-card-ico">🏆</div>' +
+        '<div class="pico-card-lbl">Melhor dia (R$)</div>' +
+        '<div class="pico-card-val">' + DIAS[melhorDiaR] + '</div>' +
+        '<div class="pico-card-sub">' + fK(porDiaR[melhorDiaR]) + ' total</div>' +
+      '</div>' +
+      '<div class="pico-card green">' +
+        '<div class="pico-card-ico">⏰</div>' +
+        '<div class="pico-card-lbl">Melhor hora (R$)</div>' +
+        '<div class="pico-card-val">' + melhorHoraR + 'h–' + (melhorHoraR+1) + 'h</div>' +
+        '<div class="pico-card-sub">' + fK(porHoraR[melhorHoraR]) + ' total</div>' +
+      '</div>' +
+      (temCorridas ?
+        '<div class="pico-card blue">' +
+          '<div class="pico-card-ico">📦</div>' +
+          '<div class="pico-card-lbl">Dia mais ativo</div>' +
+          '<div class="pico-card-val">' + DIAS[melhorDiaQ] + '</div>' +
+          '<div class="pico-card-sub">' + porDiaQ[melhorDiaQ] + ' corridas</div>' +
+        '</div>' +
+        '<div class="pico-card pur">' +
+          '<div class="pico-card-ico">🚀</div>' +
+          '<div class="pico-card-lbl">Hora mais movida</div>' +
+          '<div class="pico-card-val">' + melhorHoraQ + 'h–' + (melhorHoraQ+1) + 'h</div>' +
+          '<div class="pico-card-sub">' + porHoraQ[melhorHoraQ] + ' corridas</div>' +
+        '</div>'
+      : '') +
     '</div>';
 
-  // ── Mapa de Calor ──
-  var heatHtml =
-    '<div class="card">'+
-      '<div class="ctit">🌡️ Mapa de Calor — R$/hora média</div>'+
-      '<div class="heatmap-wrap">'+
-        '<table class="heatmap"><thead><tr>'+
-          '<th class="row-lbl"></th>'+
-          DIAS.map(function(d){ return '<th>'+d+'</th>'; }).join('')+
-        '</tr></thead><tbody>';
+  // ── HTML do toggle de métrica ──
+  var toggleHtml =
+    '<div class="ouro-toggle">' +
+      '<button class="ouro-tog-btn' + (metrica==='reais'?' on':'') + '" onclick="setOuroMetrica(\'reais\')">💰 Volume em R$</button>' +
+      '<button class="ouro-tog-btn' + (metrica==='qtd'  ?' on':'') + '" ' + (temCorridas?'':'disabled title="Apenas com corridas FAB"') + ' onclick="' + (temCorridas?'setOuroMetrica(\'qtd\')':'') + '">📦 Qtd entregas' + (temCorridas?'':'&nbsp;🔒') + '</button>' +
+    '</div>';
 
-  FAIXAS.forEach(function(fh, fi) {
-    heatHtml += '<tr><th class="row-lbl">'+fh+'h</th>';
-    for (var d=0;d<7;d++) {
-      var m = mediasMat[d][fi];
-      var cor = m.cnt > 0 ? heatColor(m.med, maxMed) : null;
-      var valTxt = m.cnt > 0 ? fK(m.med) : '·';
-      heatHtml +=
-        '<td><div class="hm-cell'+(cor?'':' empty')+'" '+
-          (cor ? 'style="background:'+cor+'"' : '')+
-          ' data-d="'+d+'" data-f="'+fi+'" data-med="'+(m.med||0).toFixed(1)+'" data-cnt="'+m.cnt+'"'+
-          ' onclick="hmTooltip(event,this)"'+
-        '><div class="hm-val">'+valTxt+'</div></div></td>';
+  // ── HTML da grade (pico-grid) ──
+  var maxAtual = metrica === 'qtd' ? maxQ : maxR;
+  var limPico  = metrica === 'qtd' ? limPicoQ : limPicoR;
+
+  var gridHtml = '<div class="pico-grid-wrap"><div class="pico-grid">';
+  // header — espaço em branco + 7 dias
+  gridHtml += '<div class="pico-col-hdr"></div>';
+  DIAS.forEach(function(d) { gridHtml += '<div class="pico-col-hdr">' + d + '</div>'; });
+
+  horasAtivas.forEach(function(hr) {
+    gridHtml += '<div class="pico-row-lbl">' + hr + 'h</div>';
+    for (var d = 0; d < 7; d++) {
+      var val = metrica === 'qtd' ? grade[d][hr].q : grade[d][hr].r;
+      var cor = heatClr(val, maxAtual);
+      var isPico = val >= limPico && val > 0;
+      var clsCls = (val > 0.5 || grade[d][hr].q > 0 ? ' tem-dado' : '') + (isPico ? ' pico' : '');
+      var vlTxt  = '';
+      if (val > 0) {
+        vlTxt = metrica === 'qtd' ? grade[d][hr].q + 'x' : (val >= 100 ? Math.round(val) : val.toFixed(0));
+      }
+      gridHtml +=
+        '<div class="pico-cell' + clsCls + '"' +
+          (cor ? ' style="background:' + cor + ';color:' + txtClr(cor) + '"' : '') +
+          ' data-d="' + d + '" data-h="' + hr + '"' +
+          ' onclick="picoTooltip(event,this)">' +
+          (vlTxt ? '<span class="pico-val">' + vlTxt + '</span>' : '') +
+        '</div>';
     }
-    heatHtml += '</tr>';
   });
+  gridHtml += '</div></div>';
 
-  heatHtml +=
-        '</tbody></table>'+
-      '</div>'+
-      '<div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">'+
-        '<span style="font-size:11px;color:var(--mut)">Intensidade:</span>'+
-        '<div style="height:8px;flex:1;border-radius:4px;background:linear-gradient(to right,rgba(46,180,100,.4),#2ecc71,#f0a500,#e74c3c);max-width:160px"></div>'+
-        '<span style="font-size:10px;color:var(--mut)">baixo → alto</span>'+
-      '</div>'+
-      '<p style="font-size:10px;color:var(--mut);margin-top:6px">Toque em uma célula para ver detalhes. Células cinzas = sem dados nessa faixa.</p>'+
+  // escala
+  var gradBar = metrica === 'qtd'
+    ? 'linear-gradient(to right, var(--bg3), rgba(46,180,100,.5), #2ecc71, #f0a500, #e74c3c)'
+    : 'linear-gradient(to right, var(--bg3), rgba(46,180,100,.5), #2ecc71, #f0a500, #e74c3c)';
+  gridHtml +=
+    '<div class="pico-escala">' +
+      '<span class="pico-escala-lbl">Baixo</span>' +
+      '<div class="pico-escala-bar" style="background:' + gradBar + '"></div>' +
+      '<span class="pico-escala-lbl">⭐ Pico</span>' +
+    '</div>' +
+    '<p style="font-size:10px;color:var(--mut);margin-top:6px">★ = pico de demanda (top 30%). Toque para detalhes.</p>';
+
+  var heatCardHtml =
+    '<div class="card">' +
+      '<div class="ctit">🌡️ Mapa de Calor — ' + (metrica==='qtd'?'Qtd corridas':'Volume R$') + ' por hora</div>' +
+      toggleHtml +
+      gridHtml +
     '</div>';
 
-  // ── Ranking Top 3 ──
-  var rankHtml = '<div class="card"><div class="ctit">🥇 Top 3 blocos mais lucrativos</div><div class="ouro-rank">';
+  // ── Ranking ──
+  var rankSrc = metrica === 'qtd' ? rankQ : rankR;
+  var top3 = rankSrc.filter(function(b){ return metrica==='qtd'?b.q>0:b.r>0.5; }).slice(0, 3);
   var medalhas = ['🥇','🥈','🥉'];
-  ranking.forEach(function(r, ri) {
-    rankHtml +=
-      '<div class="ouro-rank-item">'+
-        '<div class="ouro-rank-pos">'+medalhas[ri]+'</div>'+
-        '<div class="ouro-rank-info">'+
-          '<div class="ouro-rank-nm">'+DIAS[r.dia]+' · '+FAIXAS[r.faixa]+'h às '+(FAIXAS[r.faixa]+2)+'h</div>'+
-          '<div class="ouro-rank-sub">'+r.cnt+' registro'+(r.cnt>1?'s':'')+' nessa faixa</div>'+
-        '</div>'+
-        '<div class="ouro-rank-rph">'+fK(r.med)+'/h</div>'+
-      '</div>';
-  });
-  rankHtml += '</div></div>';
+  var rankHtml =
+    '<div class="card">' +
+      '<div class="ctit">🏅 Top blocos — ' + (metrica==='qtd'?'mais corridas':'mais rentáveis') + '</div>' +
+      '<div class="pico-rank">' +
+      top3.map(function(b, bi) {
+        var val = metrica === 'qtd' ? b.q + ' corrida' + (b.q>1?'s':'') : fK(b.r);
+        var sub = metrica === 'qtd'
+          ? 'R$ ' + b.r.toFixed(2).replace('.',',') + ' total'
+          : b.q > 0 ? b.q + ' corrida' + (b.q>1?'s':' FAB') : 'via histórico';
+        return '<div class="pico-rank-item">' +
+          '<div class="pico-rank-pos">' + medalhas[bi] + '</div>' +
+          '<div class="pico-rank-info">' +
+            '<div class="pico-rank-nm">' + DIAS[b.dia] + ' · ' + b.hora + 'h às ' + (b.hora+1) + 'h</div>' +
+            '<div class="pico-rank-sb">' + sub + '</div>' +
+          '</div>' +
+          '<div class="pico-rank-val">' + val + '</div>' +
+        '</div>';
+      }).join('') +
+      '</div>' +
+    '</div>';
 
-  el.innerHTML = destHtml + heatHtml + rankHtml;
+  // Aviso se usando estimativa (sem corridas FAB)
+  var avisoHtml = !temCorridas && temHist
+    ? '<div style="background:rgba(240,165,0,.08);border:1px solid rgba(240,165,0,.3);border-radius:var(--rs);padding:10px 12px;font-size:12px;color:var(--mut);margin-bottom:12px">'+
+        '⚠️ <strong style="color:var(--amb)">Estimativa</strong> — baseada nos horários de trabalho do histórico.<br>Use o botão <strong>+ GANHO</strong> para dados precisos por corrida.' +
+      '</div>'
+    : '';
+
+  el.innerHTML = avisoHtml + cardsHtml + heatCardHtml + rankHtml;
+}
+
+function setOuroMetrica(m) {
+  _ouroMetrica = m;
+  renderHorariosDeOuro();
+}
+
+// Tooltip picos
+var _picoTipTimer = null;
+function picoTooltip(evt, cell) {
+  var DIAS_EXT = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  var d  = parseInt(cell.getAttribute('data-d'));
+  var hr = parseInt(cell.getAttribute('data-h'));
+  var g  = S.garagem ? 0 : 0; // só pega grade do renderHorariosDeOuro via closure não disponível aqui
+  // reconstruir da source
+  var corrR = 0, corrQ = 0;
+  (S.corridas||[]).forEach(function(c){ if(c.dia===d&&c.hora===hr){ corrR+=c.val; corrQ++; } });
+  // hist fallback se sem corridas
+  var histR = 0;
+  S.hist.forEach(function(h){
+    if(!h.ini||!h.fim||!h.lq||h.lq<=0) return;
+    var dt=ptDt(h.dt); if(dt.getDay()!==d) return;
+    var iniP=h.ini.split(':'),fimP=h.fim.split(':');
+    var iniM=parseInt(iniP[0])*60+parseInt(iniP[1]);
+    var fimM=parseInt(fimP[0])*60+parseInt(fimP[1]);
+    var totM=fimM>iniM?fimM-iniM:fimM+1440-iniM;
+    if(totM<=0) return;
+    var hrI=hr*60,hrF=hrI+60;
+    var sob=fimM>iniM?Math.max(0,Math.min(hrF,fimM)-Math.max(hrI,iniM)):
+      Math.max(0,Math.min(hrF,1440)-Math.max(hrI,iniM))+Math.max(0,Math.min(hrF,fimM)-Math.max(hrI,0));
+    if(sob>=10) histR+=(sob/totM)*h.lq;
+  });
+  var totalR = corrR > 0 ? corrR : histR;
+  if (totalR < 0.5 && corrQ === 0) return;
+
+  var tip = document.getElementById('pico-tip');
+  tip.innerHTML =
+    '<strong>' + DIAS_EXT[d] + ' · ' + hr + 'h às ' + (hr+1) + 'h</strong><br>' +
+    'Volume: <strong>' + fK(totalR) + '</strong>' +
+    (corrQ > 0 ? '<br>Corridas FAB: <strong>' + corrQ + '</strong>' : '<br>Estimado via histórico') ;
+  tip.style.display = 'block';
+  var x = Math.min(evt.clientX + 10, window.innerWidth - 180);
+  var y = Math.max(evt.clientY - 70, 8);
+  tip.style.left = x + 'px';
+  tip.style.top  = y + 'px';
+  clearTimeout(_picoTipTimer);
+  _picoTipTimer = setTimeout(function(){ tip.style.display='none'; }, 3000);
 }
 
 // Tooltip interativo do heatmap
@@ -5170,25 +5342,23 @@ function salvarEdicaoExtrato() {
   if (!novoVal || novoVal <= 0) { toast('Digite um valor válido'); return; }
 
   if (tipo === 'entrada' && hIdx >= 0) {
-    var h = S.hist[hIdx];
-    if (!h) { toast('Registro não encontrado'); return; }
-    // recalcular lq: bruto - custos
-    var totalGastos = (h.gastos||[]).reduce(function(a,g){return a+g.val;},0);
-    h.b  = novoVal + totalGastos;   // bruto = liquido desejado + custos
-    h.lq = novoVal;
+    var hEnt = S.hist[hIdx];
+    if (!hEnt) { toast('Registro não encontrado'); return; }
+    var totalGastos = (hEnt.gastos||[]).reduce(function(a,g){return a+g.val;},0);
+    hEnt.b  = novoVal + totalGastos;
+    hEnt.lq = novoVal;
     if (novaData) {
       var d = new Date(novaData+'T12:00:00');
-      h.dt  = d.toLocaleDateString('pt-BR');
+      hEnt.dt  = d.toLocaleDateString('pt-BR');
     }
   } else if (tipo === 'gasto' && hIdx >= 0 && sIdx >= 0) {
-    var h = S.hist[hIdx];
-    if (!h || !h.gastos || !h.gastos[sIdx]) { toast('Gasto não encontrado'); return; }
-    h.gastos[sIdx].nm  = novoNm || h.gastos[sIdx].nm;
-    h.gastos[sIdx].val = novoVal;
-    // recalcular lq do dia
-    var totalG = h.gastos.reduce(function(a,g){return a+g.val;},0);
-    h.c  = totalG;
-    h.lq = Math.max(0, h.b - totalG);
+    var hGst = S.hist[hIdx];
+    if (!hGst || !hGst.gastos || !hGst.gastos[sIdx]) { toast('Gasto não encontrado'); return; }
+    hGst.gastos[sIdx].nm  = novoNm || hGst.gastos[sIdx].nm;
+    hGst.gastos[sIdx].val = novoVal;
+    var totalG = hGst.gastos.reduce(function(a,g){return a+g.val;},0);
+    hGst.c  = totalG;
+    hGst.lq = Math.max(0, hGst.b - totalG);
   }
 
   salvar();
@@ -5280,15 +5450,28 @@ function confirmarGanhoRapido() {
   var novo = parseFloat(inp.value);
 
   if (!novo || novo <= 0) {
-    // shake visual no input
     inp.style.borderColor = 'var(--red)';
-    inp.style.animation = 'none';
-    setTimeout(function() {
-      inp.style.borderColor = '';
-    }, 800);
+    setTimeout(function() { inp.style.borderColor = ''; }, 800);
     toast('⚠️ Digite um valor maior que zero');
     return;
   }
+
+  // ── Registrar corrida com timestamp preciso ──
+  var agora  = new Date();
+  var corrida = {
+    val:  +novo.toFixed(2),
+    ts:   agora.getTime(),           // epoch ms
+    dia:  agora.getDay(),            // 0=Dom..6=Sáb
+    hora: agora.getHours(),          // 0-23
+    min:  agora.getMinutes(),        // 0-59
+    dtBr: agora.toLocaleDateString('pt-BR'),
+    hrBr: agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})
+  };
+  if (!S.corridas) S.corridas = [];
+  S.corridas.push(corrida);
+  // limita a 5000 corridas (suficiente para anos de uso)
+  if (S.corridas.length > 5000) S.corridas.shift();
+  salvar();
 
   // soma ao campo ganho bruto
   var campo    = document.getElementById('bruto');
@@ -5296,30 +5479,28 @@ function confirmarGanhoRapido() {
   var total    = +(anterior + novo).toFixed(2);
   campo.value  = total;
 
-  // dispara recálculo
   calcDia();
 
-  // incrementa contador do badge
+  // badge
   _mqrContagemHoje++;
   var badge = document.getElementById('fab-badge');
   badge.textContent = _mqrContagemHoje;
   badge.classList.add('on');
 
-  // fecha o modal
+  // fecha modal
   document.getElementById('mqr-overlay').classList.remove('on');
   inp.blur();
 
-  // animação de pulse no FAB
+  // pulse
   var fab = document.getElementById('fab-rapido');
   fab.classList.remove('pulse');
-  void fab.offsetWidth; // reflow para reiniciar animação
+  void fab.offsetWidth;
   fab.classList.add('pulse');
   setTimeout(function() { fab.classList.remove('pulse'); }, 500);
 
-  // feedback toast com formatação BR
   var fmtNovo  = 'R$ ' + novo.toFixed(2).replace('.', ',');
   var fmtTotal = 'R$ ' + total.toFixed(2).replace('.', ',');
-  toast('✅ +' + fmtNovo + ' somado → Total: ' + fmtTotal);
+  toast('✅ +' + fmtNovo + ' · ' + corrida.hrBr + ' → Total: ' + fmtTotal);
 }
 
 init();
