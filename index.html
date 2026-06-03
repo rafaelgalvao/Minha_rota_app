@@ -8,20 +8,21 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MinhaRota">
 <link rel="manifest" id="pwa-manifest">
-<title>MinhaRota v1.4.2-beta</title>
+<title>MinhaRota v1.5.0-beta</title>
 <style>
 /* ═══════════════════════════════════════════
-   MinhaRota · v1.4.2-beta
-   UI: 1.4 | Lógica: 1.4 | DB: 0.7
+   MinhaRota · v1.5.0-beta
+   UI: 1.5 | Lógica: 1.4 | DB: 0.7
    Changelog:
-   [1.4.2-beta] Correção crítica — Illegal return
-   - CORRIGIDO: fragmento órfão de 2 linhas após
-     fechar picoTooltip() ficava no escopo global:
-       var el = document.getElementById('ouro-content');
-       if (!el) return;  ← SyntaxError: Illegal return
-     Esse resquício impedia o app de inicializar.
-   [1.4.1-beta] Correções de brace imbalance
+   [1.5.0-beta] Nav redesenhada — FAB central
+   - Nav inferior: 4 botões (Home, Contas, Caixas, Gráficos)
+   - FAB verde centralizado elevado na nav (estilo app moderno)
+   - Drawer completo: todas as abas + atalhos principais
+   - Abas removidas da nav: Semana, Extrato, Dívidas, Garagem
+     (acessíveis pelo drawer ☰)
+   - Correções de bugs críticos da v1.4.x
    [1.4.0-beta] Picos de Demanda — Análise Precisa
+   [1.3.0-beta] Extrato editável + Correções
 ═══════════════════════════════════════════ */
 
 :root {
@@ -111,13 +112,140 @@ body { background: var(--bg); color: var(--txt); font-family: -apple-system, Bli
 .usr-pill { font-size: 11px; color: var(--grn); background: rgba(46,204,113,.1); border: 1px solid rgba(46,204,113,.25); padding: 4px 10px; border-radius: 99px; cursor: pointer; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ── NAV ── */
-.nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg2); border-top: 1px solid var(--brd); display: flex; z-index: 60; padding-bottom: env(safe-area-inset-bottom, 0); }
-.nb { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px 1px 8px; cursor: pointer; color: var(--mut); gap: 2px; border: none; background: none; font-family: inherit; transition: color .15s; font-size: 9px; }
+/* ── NAV (4 botões + FAB central) ── */
+.nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--bg2);
+  border-top: 1px solid var(--brd);
+  display: flex;
+  align-items: flex-end;
+  z-index: 60;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  height: calc(64px + env(safe-area-inset-bottom, 0px));
+}
+.nb {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 4px 8px;
+  cursor: pointer;
+  color: var(--mut);
+  gap: 3px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  transition: color .15s;
+  font-size: 9px;
+  height: 64px;
+}
 .nb svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .nb.on { color: var(--grn); }
 
+/* Espaço central vazio para o FAB */
+.nav-fab-gap {
+  flex: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  pointer-events: none;
+}
+
+/* FAB — centralizado NA nav, elevado acima */
+.fab {
+  position: fixed;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: var(--grn);
+  color: #000;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 65;
+  box-shadow: 0 6px 24px rgba(46,204,113,.5), 0 2px 8px rgba(0,0,0,.5);
+  transition: transform .15s, box-shadow .15s;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  /* Borda de anel para destacar do nav */
+  ring: 3px solid var(--bg2);
+}
+.fab::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 3px solid var(--bg2);
+  pointer-events: none;
+  z-index: -1;
+}
+.fab:active {
+  transform: translateX(-50%) scale(.92);
+  box-shadow: 0 2px 12px rgba(46,204,113,.3);
+}
+.fab.pulse {
+  animation: fab-pulse .4s ease-out;
+}
+@keyframes fab-pulse {
+  0%   { transform: translateX(-50%) scale(1); }
+  40%  { transform: translateX(-50%) scale(1.18); }
+  70%  { transform: translateX(-50%) scale(.95); }
+  100% { transform: translateX(-50%) scale(1); }
+}
+.fab-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  pointer-events: none;
+}
+.fab-icon svg {
+  width: 28px;
+  height: 28px;
+  stroke: #000;
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.fab-lbl {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  color: #000;
+  line-height: 1;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+.fab-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  background: #e74c3c;
+  color: #fff;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 800;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', Courier, monospace;
+  padding: 0 4px;
+  border: 2px solid var(--bg2);
+}
+.fab-badge.on { display: flex; }
+
 /* ── MAIN ── */
-.main { padding: 14px 14px 88px; max-width: 480px; margin: 0 auto; }
+.main { padding: 14px 14px 96px; max-width: 480px; margin: 0 auto; }
 .pg { display: none; }
 .pg.on { display: block; }
 
@@ -839,84 +967,6 @@ canvas { display: block; width: 100% !important; }
 /* ══════════════════════════════════════
    FAB — Registro Rápido
 ══════════════════════════════════════ */
-.fab {
-  position: fixed;
-  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-  right: 18px;
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  background: var(--grn);
-  color: #000;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 55;
-  box-shadow: 0 4px 20px rgba(46,204,113,.45), 0 2px 8px rgba(0,0,0,.4);
-  transition: transform .15s, box-shadow .15s;
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-}
-.fab:active {
-  transform: scale(.92);
-  box-shadow: 0 2px 10px rgba(46,204,113,.3);
-}
-.fab.pulse {
-  animation: fab-pulse .4s ease-out;
-}
-@keyframes fab-pulse {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.18); }
-  70%  { transform: scale(.95); }
-  100% { transform: scale(1); }
-}
-.fab-icon {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  pointer-events: none;
-}
-.fab-icon svg {
-  width: 26px;
-  height: 26px;
-  stroke: #000;
-  fill: none;
-  stroke-width: 2.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.fab-lbl {
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: .04em;
-  color: #000;
-  line-height: 1;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-}
-.fab-badge {
-  position: absolute;
-  top: -3px;
-  right: -3px;
-  min-width: 18px;
-  height: 18px;
-  background: #e74c3c;
-  color: #fff;
-  border-radius: 99px;
-  font-size: 10px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Courier New', Courier, monospace;
-  padding: 0 4px;
-  border: 2px solid var(--bg);
-  display: none;
-}
-.fab-badge.on { display: flex; }
-
 /* ── Modal ganho rápido ── */
 .mqr-overlay {
   position: fixed; inset: 0;
@@ -1126,7 +1176,7 @@ canvas { display: block; width: 100% !important; }
   <button class="menu-btn" onclick="abrirDrawer()" title="Menu">
     <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
-  <div class="logo">MINHA<em>ROTA</em><small>v1.4.2-beta</small></div>
+  <div class="logo">MINHA<em>ROTA</em><small>v1.5.0-β</small></div>
   <div class="hdr-right">
     <div class="pill" id="dpill"></div>
     <div class="usr-pill" id="upill" onclick="abrirM('usr')" title="Trocar usuário">👤 —</div>
@@ -1649,39 +1699,33 @@ canvas { display: block; width: 100% !important; }
 
 </main>
 
-<!-- NAV -->
-<nav class="nav" style="--nb-size:9px">
+<!-- NAV — 4 botões + FAB central -->
+<nav class="nav">
+  <!-- Esquerda: Hoje + Contas -->
   <button class="nb on" data-pg="home" onclick="irPara(this)">
     <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
     Hoje
-  </button>
-  <button class="nb" data-pg="caixas" onclick="irPara(this)">
-    <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-    Caixas
   </button>
   <button class="nb" data-pg="contas" onclick="irPara(this)">
     <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
     Contas
   </button>
-  <button class="nb" data-pg="dividas" onclick="irPara(this)">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-    Dívidas
-  </button>
-  <button class="nb" data-pg="extrato" onclick="irPara(this)">
-    <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-    Extrato
+
+  <!-- Centro: espaço para o FAB (o botão é posicionado em fixed) -->
+  <div class="nav-fab-gap" aria-hidden="true"></div>
+
+  <!-- Direita: Caixas + Gráficos -->
+  <button class="nb" data-pg="caixas" onclick="irPara(this)">
+    <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+    Caixas
   </button>
   <button class="nb" data-pg="graficos" onclick="irPara(this)">
     <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     Gráficos
   </button>
-  <button class="nb" data-pg="garagem" onclick="irPara(this)">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    Garagem
-  </button>
 </nav>
 
-<!-- FAB — Registro Rápido (visível em todas as abas) -->
+<!-- FAB — Ganho Rápido (centralizado, elevado acima da nav) -->
 <button class="fab" id="fab-rapido" onclick="abrirGanhoRapido()" title="Adicionar ganho rápido" aria-label="Adicionar ganho rápido">
   <div class="fab-icon">
     <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -1734,7 +1778,7 @@ canvas { display: block; width: 100% !important; }
   </div>
 </div>
 
-<div class="ver">v1.4.2-beta · UI:1.4 · DB:0.7</div>
+<div class="ver">v1.5.0-beta · UI:1.5 · DB:0.7</div>
 
 <!-- MODAL: CONTA -->
 <div class="mov" id="m-conta">
@@ -1940,13 +1984,65 @@ canvas { display: block; width: 100% !important; }
     </div>
   </div>
 
-  <div class="drawer-sec">Navegação</div>
+  <div class="drawer-sec">Navegação principal</div>
+  <div style="background:var(--bg2); border-top:1px solid var(--brd); border-bottom:1px solid var(--brd)">
+    <div class="drawer-row" onclick="fecharDrawer();irParaHome()">
+      <div class="drawer-row-ico" style="background:rgba(46,204,113,.12)">🏠</div>
+      <div class="drawer-row-txt">
+        <div class="drawer-row-nm">Hoje</div>
+        <div class="drawer-row-sb">Registro do dia e ganhos</div>
+      </div>
+      <div class="drawer-row-arr">›</div>
+    </div>
+    <div class="drawer-row" onclick="fecharDrawer();irParaContas()">
+      <div class="drawer-row-ico" style="background:rgba(52,152,219,.12)">📄</div>
+      <div class="drawer-row-txt">
+        <div class="drawer-row-nm">Contas</div>
+        <div class="drawer-row-sb">Contas fixas e meta diária</div>
+      </div>
+      <div class="drawer-row-arr">›</div>
+    </div>
+    <div class="drawer-row" onclick="fecharDrawer();irParaCaixas()">
+      <div class="drawer-row-ico" style="background:rgba(155,89,182,.12)">📦</div>
+      <div class="drawer-row-txt">
+        <div class="drawer-row-nm">Caixinhas</div>
+        <div class="drawer-row-sb">Distribuição de ganhos</div>
+      </div>
+      <div class="drawer-row-arr">›</div>
+    </div>
+    <div class="drawer-row" onclick="fecharDrawer();irParaGraficos()">
+      <div class="drawer-row-ico" style="background:rgba(240,165,0,.12)">📊</div>
+      <div class="drawer-row-txt">
+        <div class="drawer-row-nm">Gráficos</div>
+        <div class="drawer-row-sb">Análises e picos de demanda</div>
+      </div>
+      <div class="drawer-row-arr">›</div>
+    </div>
+  </div>
+
+  <div class="drawer-sec">Mais</div>
   <div style="background:var(--bg2); border-top:1px solid var(--brd); border-bottom:1px solid var(--brd)">
     <div class="drawer-row" onclick="fecharDrawer();irParaSemana()">
-      <div class="drawer-row-ico" style="background:rgba(155,89,182,.12)">📅</div>
+      <div class="drawer-row-ico" style="background:rgba(52,152,219,.12)">📅</div>
       <div class="drawer-row-txt">
         <div class="drawer-row-nm">Semana / Histórico</div>
         <div class="drawer-row-sb">Resumos e histórico de ganhos</div>
+      </div>
+      <div class="drawer-row-arr">›</div>
+    </div>
+    <div class="drawer-row" onclick="fecharDrawer();irParaExtrato()">
+      <div class="drawer-row-ico" style="background:rgba(46,204,113,.12)">🧾</div>
+      <div class="drawer-row-txt">
+        <div class="drawer-row-nm">Extrato</div>
+        <div class="drawer-row-sb">Todas as movimentações</div>
+      </div>
+      <div class="drawer-row-arr">›</div>
+    </div>
+    <div class="drawer-row" onclick="fecharDrawer();irParaDividas()">
+      <div class="drawer-row-ico" style="background:rgba(231,76,60,.12)">💳</div>
+      <div class="drawer-row-txt">
+        <div class="drawer-row-nm">Dívidas</div>
+        <div class="drawer-row-sb">Controle de dívidas e parcelamentos</div>
       </div>
       <div class="drawer-row-arr">›</div>
     </div>
@@ -1955,6 +2051,14 @@ canvas { display: block; width: 100% !important; }
       <div class="drawer-row-txt">
         <div class="drawer-row-nm">Garagem</div>
         <div class="drawer-row-sb">Manutenção e desgaste da moto</div>
+      </div>
+      <div class="drawer-row-arr">›</div>
+    </div>
+    <div class="drawer-row" onclick="fecharDrawer();irParaConfig()">
+      <div class="drawer-row-ico" style="background:rgba(155,89,182,.12)">⚙️</div>
+      <div class="drawer-row-txt">
+        <div class="drawer-row-nm">Configurações</div>
+        <div class="drawer-row-sb">MEI, folgas e preferências</div>
       </div>
       <div class="drawer-row-arr">›</div>
     </div>
@@ -1978,7 +2082,7 @@ canvas { display: block; width: 100% !important; }
       <div class="drawer-row-ico" style="background:rgba(46,204,113,.12)">🏍</div>
       <div class="drawer-row-txt">
         <div class="drawer-row-nm">MinhaRota</div>
-        <div class="drawer-row-sb">v1.1.0-beta · Controle para entregadores</div>
+        <div class="drawer-row-sb">v1.5.0-beta · Controle para entregadores</div>
       </div>
     </div>
   </div>
@@ -2558,16 +2662,38 @@ function irPara(btn) {
   if (pg==='garagem')  renderGaragem();
 }
 function irParaSemana() {
-  var btn = document.querySelector('.nb[data-pg="semana"]');
-  if (btn) irPara(btn);
+  var btn = document.querySelector('.nb[data-pg="semana"]') || null;
+  if (btn) { irPara(btn); return; }
+  // fallback: activate semana page directly
+  irParaPg('semana');
 }
-function irParaGaragem() {
-  var btn = document.querySelector('.nb[data-pg="garagem"]');
-  if (btn) irPara(btn);
-}
-function irParaConfig() {
-  var btn = document.querySelector('.nb[data-pg="config"]');
-  if (btn) irPara(btn);
+function irParaHome()     { irParaPg('home'); }
+function irParaContas()   { irParaPg('contas'); }
+function irParaCaixas()   { irParaPg('caixas'); }
+function irParaGraficos() { irParaPg('graficos'); }
+function irParaGaragem()  { irParaPg('garagem'); }
+function irParaExtrato()  { irParaPg('extrato'); }
+function irParaDividas()  { irParaPg('dividas'); }
+function irParaConfig()   { irParaPg('config'); }
+
+// Navegar para qualquer página pelo nome (mesmo sem botão na nav)
+function irParaPg(pg) {
+  // tenta via botão da nav primeiro
+  var btn = document.querySelector('.nb[data-pg="'+pg+'"]');
+  if (btn) { irPara(btn); return; }
+  // fallback direto
+  document.querySelectorAll('.pg').forEach(function(el){ el.classList.remove('on'); });
+  document.querySelectorAll('.nb').forEach(function(b){ b.classList.remove('on'); });
+  var pgEl = document.getElementById('pg-'+pg);
+  if (pgEl) pgEl.classList.add('on');
+  if (pg==='contas')   { renderContas(); renderMEI && renderMEI(); }
+  if (pg==='caixas')   { renderBgr(); renderCfg(); renderDepList(); }
+  if (pg==='semana')   renderSemana();
+  if (pg==='graficos') renderGraficos();
+  if (pg==='extrato')  iniciarExtrato && iniciarExtrato();
+  if (pg==='dividas')  renderDividas && renderDividas();
+  if (pg==='config')   renderConfig && renderConfig();
+  if (pg==='garagem')  renderGaragem && renderGaragem();
 }
 
 // ── TABS ──────────────────────────────────────────────────
@@ -3829,6 +3955,13 @@ function renderExtrato() {
     '<div class="ext-box"><div class="ext-box-lbl">Contas pagas</div><div class="ext-box-val r">'+fK(totalSaidas)+'</div></div>'+
     '<div class="ext-box"><div class="ext-box-lbl">Custos de rua</div><div class="ext-box-val" style="color:var(--amb)">'+fK(totalGastos)+'</div></div>'+
     '<div class="ext-box"><div class="ext-box-lbl">Saldo líquido</div><div class="ext-box-val '+(saldo>=0?'g':'r')+'">'+fK(saldo)+'</div></div>';
+
+  // Lista
+  var listaEl = document.getElementById('ext-lista');
+  if (!eventos.length) {
+    listaEl.innerHTML = '<div class="ext-vazio">Nenhuma movimentação neste período.</div>';
+    return;
+  }
 
   // Lista
   var listaEl = document.getElementById('ext-lista');
@@ -5342,23 +5475,25 @@ function salvarEdicaoExtrato() {
   if (!novoVal || novoVal <= 0) { toast('Digite um valor válido'); return; }
 
   if (tipo === 'entrada' && hIdx >= 0) {
-    var hEnt = S.hist[hIdx];
-    if (!hEnt) { toast('Registro não encontrado'); return; }
-    var totalGastos = (hEnt.gastos||[]).reduce(function(a,g){return a+g.val;},0);
-    hEnt.b  = novoVal + totalGastos;
-    hEnt.lq = novoVal;
+    var h = S.hist[hIdx];
+    if (!h) { toast('Registro não encontrado'); return; }
+    // recalcular lq: bruto - custos
+    var totalGastos = (h.gastos||[]).reduce(function(a,g){return a+g.val;},0);
+    h.b  = novoVal + totalGastos;   // bruto = liquido desejado + custos
+    h.lq = novoVal;
     if (novaData) {
       var d = new Date(novaData+'T12:00:00');
-      hEnt.dt  = d.toLocaleDateString('pt-BR');
+      h.dt  = d.toLocaleDateString('pt-BR');
     }
   } else if (tipo === 'gasto' && hIdx >= 0 && sIdx >= 0) {
-    var hGst = S.hist[hIdx];
-    if (!hGst || !hGst.gastos || !hGst.gastos[sIdx]) { toast('Gasto não encontrado'); return; }
-    hGst.gastos[sIdx].nm  = novoNm || hGst.gastos[sIdx].nm;
-    hGst.gastos[sIdx].val = novoVal;
-    var totalG = hGst.gastos.reduce(function(a,g){return a+g.val;},0);
-    hGst.c  = totalG;
-    hGst.lq = Math.max(0, hGst.b - totalG);
+    var h = S.hist[hIdx];
+    if (!h || !h.gastos || !h.gastos[sIdx]) { toast('Gasto não encontrado'); return; }
+    h.gastos[sIdx].nm  = novoNm || h.gastos[sIdx].nm;
+    h.gastos[sIdx].val = novoVal;
+    // recalcular lq do dia
+    var totalG = h.gastos.reduce(function(a,g){return a+g.val;},0);
+    h.c  = totalG;
+    h.lq = Math.max(0, h.b - totalG);
   }
 
   salvar();
